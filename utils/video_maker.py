@@ -23,11 +23,44 @@ class VideoMaker(VideoMakerBase):
         self.index = self.index + 1
         return str(self.index)
 
+    def __apply_transformation__(self, file_path, duration):
+        output_file_path = "tmp/" + self.__next_index__() + ".mp4"
+        cap = cv2.VideoCapture(file_path)
+        res_writer = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
+
+        scale = IMAGE_SCALING
+        cur_time = 0.0
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if ret == False:
+                break
+
+            height, width, colors = frame.shape
+
+            cur_time += 1.0 / VIDEO_FPS
+
+            to_x = width / 2 * scale * cur_time / duration
+            to_y = height / 2 * scale * cur_time / duration
+
+            img = Image.fromarray(frame)
+            img = img.crop((to_x, to_y, width - to_x, height - to_y))
+            img = img.resize((IMAGE_WIDTH, IMAGE_HEIGHT), Image.ANTIALIAS)
+            frame = np.array(img)
+            res_writer.write(frame)
+
+        cap.release()
+        res_writer.release()
+        return output_file_path
+
     def __make_image_video__(self, image_src, duration):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
         clip = ImageClip(image_src, duration=duration)
         clip.write_videofile(file_path, fps=VIDEO_FPS)
         clip.close()
+
+        file_path = self.__apply_transformation__(file_path, duration)
+
         return file_path
 
     def __make_video_video__(self, video_src, begin, end):
@@ -56,7 +89,7 @@ class VideoMaker(VideoMakerBase):
         shadow = int(height * SHADOW_SIZE)
         for i in range(shadow):
             delta = i / shadow
-            frame[height - 1 - i] *= delta * delta * delta * delta
+            frame[height - 1 - i] *= delta * delta * delta
         return frame
 
     def __add_text_to_video__(self, file_name, intervals, duration, icon=None):
@@ -98,9 +131,9 @@ class VideoMaker(VideoMakerBase):
                     font = ImageFont.truetype('fonts/Roboto-Regular.ttf', TEXT_SIZE)
                     text = interval.text
                     
-                    textWidth = len(text) * 15
+                    textWidth = len(text) * 30
 
-                    draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_BOTTOM_PADDING), text, font = font)
+                    draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
                     frame = np.array(image_pil)
             amount += 1
             if (amount + 1) % 10 == 0:
