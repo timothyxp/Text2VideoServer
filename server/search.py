@@ -18,12 +18,20 @@ def search():
 
     data = request.get_json()
 
-    data = Config.analyzer.analyze(data.text)
+    config = Config()
+
+    for key in data:
+        print(key)
+        print(data[key])
+
+    data = data["text"]
+
+    data = config.analyzer.analyze(data)
 
     videos = []
 
-    for video in data.videos:
-        token = Config.downloader.download(video)
+    for video in data['videos']:
+        token = config.downloader.download(video)
 
         video_path = path.join(DOWNLOAD_PATH, token)
 

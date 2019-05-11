@@ -3,6 +3,7 @@ import pytube
 
 from config import DOWNLOAD_PATH
 
+
 class VideoDownloadBase(ABC):
     @abstractmethod
     def download(self, href):
@@ -16,6 +17,7 @@ class VideoDownload(VideoDownloadBase):
         video = yt.streams\
             .filter(subtype='mp4') \
             .filter(progressive=False) \
+            .filter(resolution='720p') \
             .first()
 
         token = href.split('=')[1]
@@ -26,3 +28,10 @@ class VideoDownload(VideoDownloadBase):
         )
 
         return token
+
+
+if __name__ == '__main__':
+    d=VideoDownload()
+    token = d.download('https://www.youtube.com/watch?v=3RmJh88D19Q')
+
+    print(token)
