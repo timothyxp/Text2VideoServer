@@ -2,7 +2,7 @@
 
 from flask import Flask
 
-app = Flask("__app__", static_folder='static', static_url_path='')
+app = Flask("__app__", static_folder='tmp', static_url_path='')
 
 from server import main_handler
 from server import maker
