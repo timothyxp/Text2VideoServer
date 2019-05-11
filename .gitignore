@@ -7,3 +7,5 @@ server/__pycache__/
 downloaded/
 
 config/__pycache__/
+
+utils/__pycache__/

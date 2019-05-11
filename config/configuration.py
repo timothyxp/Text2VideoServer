@@ -1,10 +1,10 @@
-from utils.text_analyze import TextAnalyzeBase
-from utils.video_download import VideoDownloadBase
-from utils.video_maker import VideoMakerBase
+from utils.text_analyze import TextAnalyze
+from utils.video_download import VideoDownload
+from utils.video_maker import VideoMaker
 
 
-class Config():
+class Config:
     def __init__(self):
-        analyzer = TextAnalyzeBase()
-        downloader = VideoDownloadBase()
-        maker = VideoMakerBase()
+        self.analyzer = TextAnalyze()
+        self.downloader = VideoDownload()
+        self.maker = VideoMaker()
