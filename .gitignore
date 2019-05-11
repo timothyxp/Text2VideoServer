@@ -1,1 +1,9 @@
 env/
+
+server/__pycache__/
+
+.idea/
+
+downloaded/
+
+config/__pycache__/
