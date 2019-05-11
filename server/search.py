@@ -10,7 +10,6 @@ from os import path
 
 import json
 
-
 @app.route('/search', methods=["POST"])
 def search():
     if not request.json:

@@ -20,6 +20,8 @@ class TextAnalyzeBase(ABC):
 
 class TextAnalyze(TextAnalyzeBase):
     def __summarize__(self, article_text):
+        if len(article_text) <= 100:
+            return article_text
         article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)  
         article_text = re.sub(r'\s+', ' ', article_text)  
         formatted_article_text = re.sub('[^А-Яа-я]',' ', article_text) 
@@ -91,6 +93,8 @@ class TextAnalyze(TextAnalyzeBase):
                 videos.append(href)
                 print("Link:", href)
 
+        print('Text length:', len(text))
+
         return {
             'emotion': DEFAULT_EMOTION,
             'videos': videos,
@@ -100,5 +104,5 @@ class TextAnalyze(TextAnalyzeBase):
             #     'https://im0-tub-ru.yandex.net/i?id=77bb6764fc6a184f1517caf6567bce4f&n=13'
             # ],
             'data': videos_href,
-            'length': len(text) * 1.3
+            'length': len(text) * .2
         }
