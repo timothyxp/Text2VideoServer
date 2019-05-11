@@ -44,9 +44,3 @@ class TextAnalyze(TextAnalyzeBase):
             ],
             'length': count_words * 2
         }
-
-
-if __name__ == "__main__":
-    an=TextAnalyze()
-
-    print(an.analyze('rkek'))

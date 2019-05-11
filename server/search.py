@@ -25,9 +25,9 @@ def search():
     for video in data.videos:
         token = Config.downloader.download(video)
 
-        path = path.join(DOWNLOAD_PATH, token)
+        video_path = path.join(DOWNLOAD_PATH, token)
 
-        videos.append(path)
+        videos.append(video_path)
 
     data.videos = videos
 
