@@ -11,6 +11,8 @@ def random_string():
     return ans
 
 def load_image(img_url):
+    if img_url.find("downloaded") != -1:
+        return img_url
     response = requests.get(img_url)
     img = Image.open(BytesIO(response.content))
     width = img.width

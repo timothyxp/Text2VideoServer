@@ -9,25 +9,35 @@ from data.VideoInterval import VideoInterval
 
 import json
 
+from utils.image_download import load_image
+
 @app.route('/make', methods=['POST'])
 def make():
     if not request.json:
         return abort(400)
     data = request.get_json()
     
+    config = Config()
+
     intervals = data['intervals']
 
     ints = []
 
     for interval in intervals:
-        if interval.type == 'video':
-            ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], interval['href'], interval['video_begin'], interval['video_end']))
-        elif interval.type == 'image':
-            ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], interval['href']))
+        if interval['type'] == 'video':
+            video_src = "downloaded/" + config.downloader.download(interval['href']) + ".mp4"
+            print(video_src)
+            ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
+        elif interval['type'] == 'image':
+            image_src = load_image(interval['href'])
+            print(image_src)
+            ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
 
     print(ints)
 
+    res_file = config.maker.make(ints, "none")
+
     return json.dumps({
         'type': 'ok',
-        'url': '/clip.mp4'
+        'url': res_file
     })
