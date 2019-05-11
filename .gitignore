@@ -1,1 +1,5 @@
 env/
+
+server/__pycache/
+
+.idea/
