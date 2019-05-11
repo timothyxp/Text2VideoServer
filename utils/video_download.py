@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import pytube
 
+from os import path
+
 from config import DOWNLOAD_PATH
 
 
@@ -22,16 +24,16 @@ class VideoDownload(VideoDownloadBase):
 
         token = href.split('=')[1]
 
+        subtype = video.subtype
+
+        file_path = path.join(DOWNLOAD_PATH, token) + '.' + subtype
+
+        if path.exists(file_path):
+            return token
+
         video.download(
             DOWNLOAD_PATH,
             filename=token
         )
 
         return token
-
-
-if __name__ == '__main__':
-    d=VideoDownload()
-    token = d.download('https://www.youtube.com/watch?v=3RmJh88D19Q')
-
-    print(token)
