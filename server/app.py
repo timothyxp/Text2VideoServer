@@ -1,3 +1,6 @@
-import flask
+from flask import Flask
 
-App = flask("__app__")
+app = Flask("__app__")
+
+from server import main_handler
+from server import maker
