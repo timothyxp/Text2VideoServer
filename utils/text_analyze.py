@@ -20,9 +20,14 @@ class TextAnalyze(TextAnalyzeBase):
         videos_href = []
 
         for statement in text.split('.'):
-            query = f"{statement}&sp={YOUTUBE_FILTER}"
+            query = {
+                'search_query': statement,
+                'sp':YOUTUBE_FILTER
+            }
+            query = urllib.parse.urlencode(query)
 
-            url = f"https://www.youtube.com/results?search_query=" + query
+            url = f"https://www.youtube.com/results?" + query
+
             response = urllib.request.urlopen(url)
             html = response.read()
             soup = BeautifulSoup(html, 'html.parser')
