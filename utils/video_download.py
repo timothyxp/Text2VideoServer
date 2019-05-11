@@ -18,8 +18,6 @@ class VideoDownload(VideoDownloadBase):
             .filter(progressive=False) \
             .first()
 
-        print("path", DOWNLOAD_PATH)
-
         token = href.split('=')[1]
 
         video.download(
