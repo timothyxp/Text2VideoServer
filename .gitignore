@@ -1,4 +1,8 @@
+.idea/
 env/
 downloaded/
 fonts/
 tmp/
+server/__pycache__/
+config/__pycache__/
+utils/__pycache__/
