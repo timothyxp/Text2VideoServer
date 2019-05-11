@@ -33,8 +33,6 @@ def make():
             print(image_src)
             ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
 
-    print(ints)
-
     res_file = config.maker.make(ints, "none")
 
     return json.dumps({
