@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 import pytube
 
+import os
 from os import path
 
 from config import DOWNLOAD_PATH
+
+import json
 
 
 class VideoDownloadBase(ABC):
@@ -13,27 +16,57 @@ class VideoDownloadBase(ABC):
 
 
 class VideoDownload(VideoDownloadBase):
+    def __init__(self):
+        self.errored = {}
+        if os.path.exists('error_cache.txt'):
+            with open('error_cache.txt', 'r') as inp:
+                data = str(inp.read())
+                self.errored = json.loads(data)
+
+    def __save_cache__(self):
+        print('Saving cache')
+        with open('error_cache.txt', 'w') as out:
+            out.write(json.dumps(self.errored))
+
     def download(self, href):
-        yt = pytube.YouTube(href)
+        print(self.errored)
+        if href in self.errored:
+            print('Was errored before')
+            return None
+        else:
+            print('Wasn\'t errored')
+        try:
+            yt = pytube.YouTube(href)
 
-        video = yt.streams\
-            .filter(subtype='mp4') \
-            .filter(progressive=False) \
-            .filter(resolution='720p') \
-            .first()
+            video = yt.streams\
+                .filter(subtype='mp4') \
+                .filter(progressive=False) \
+                .filter(resolution='720p') \
+                .first()
 
-        token = href.split('=')[1]
+            token = href.split('=')[1]
+            if video == None:
+                self.errored[href] = True
+                self.__save_cache__()
+                return None
+            subtype = video.subtype
 
-        subtype = video.subtype
+            file_path = path.join(DOWNLOAD_PATH, token) + '.' + subtype
 
-        file_path = path.join(DOWNLOAD_PATH, token) + '.' + subtype
+            if path.exists(file_path):
+                print('Already exists')
+                return token
 
-        if path.exists(file_path):
+            print('Downloading')
+
+            video.download(
+                DOWNLOAD_PATH,
+                filename=token
+            )
+
             return token
-
-        video.download(
-            DOWNLOAD_PATH,
-            filename=token
-        )
-
-        return token
+        except:
+            print('Error handled')
+            self.errored[href] = True
+            self.__save_cache__()
+            return None
