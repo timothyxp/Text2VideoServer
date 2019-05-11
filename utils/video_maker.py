@@ -149,7 +149,58 @@ class VideoMaker(VideoMakerBase):
 
         return output_file_name
 
+    def __make_str_hash__(self, s):
+        ans = 0
+        for c in s:
+            ans += ord(c)
+        return ans
+
+    def __make_hash__(self, intervals):
+        mod = 100000000
+        prime = 37
+        cur = 0
+        for interval in intervals:
+            if type(interval) == ImageInterval:
+                cur += interval.begin
+                cur *= prime
+                cur %= mod
+                cur += interval.end
+                cur *= prime
+                cur %= mod
+                cur += self.__make_str_hash__(interval.src)
+                cur *= prime
+                cur %= mod
+            elif type(interval) == VideoInterval:
+                cur += interval.begin
+                cur *= prime
+                cur %= mod
+                cur += interval.end
+                cur *= prime
+                cur %= mod
+                cur += self.__make_str_hash__(interval.src)
+                cur *= prime
+                cur %= mod
+        cur += int(VIDEO_FPS)
+        return str(cur)
+
+    def __copy_to_file__(self, from_file, to_file):
+        cap = cv2.VideoCapture(from_file)
+        res_writer = cv2.VideoWriter(to_file, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if ret == False:
+                break
+            res_writer.write(frame)
+
+        cap.release()
+        res_writer.release()
+
     def make(self, intervals, emotions, icon=None, overlay=None):
+        hsh = self.__make_hash__(intervals)
+        if os.path.exists("tmp/" + hsh + ".mp4"):
+            return "tmp/" + hsh + ".mp4"
+
         files = []
         duration = 0
         for i in range(len(intervals)):
@@ -172,4 +223,6 @@ class VideoMaker(VideoMakerBase):
 
         full = self.__merge_videos__(files)
         full_with_text = self.__add_text_to_video__(full, intervals, duration, icon)
+        self.__copy_to_file__(full_with_text, "tmp/" + hsh + ".mp4")
+        self.__copy_to_file__(full_with_text, "tmp/" + hsh + ".avi")
         return full_with_text
