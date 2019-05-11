@@ -20,10 +20,6 @@ def search():
 
     config = Config()
 
-    for key in data:
-        print(key)
-        print(data[key])
-
     data = data["text"]
 
     data = config.analyzer.analyze(data)
@@ -36,8 +32,6 @@ def search():
         video_path = path.join(DOWNLOAD_PATH, token)
 
         videos.append(video_path)
-
-    data.videos = videos
 
     return json.dumps(data)
 
