@@ -12,7 +12,7 @@ from utils.conf import *
 from PIL import ImageFont, ImageDraw, Image
 
 class VideoMakerBase:
-    def make(self, intervals, emotions, overlay=None):
+    def make(self, intervals, emotions, icon=None, overlay=None):
         pass
 
 class VideoMaker(VideoMakerBase):
@@ -26,14 +26,14 @@ class VideoMaker(VideoMakerBase):
     def __make_image_video__(self, image_src, duration):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
         clip = ImageClip(image_src, duration=duration)
-        clip.write_videofile(file_path, fps=30)
+        clip.write_videofile(file_path, fps=VIDEO_FPS)
         clip.close()
         return file_path
 
     def __make_video_video__(self, video_src, begin, end):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
         clip = VideoFileClip(video_src).subclip(begin, end)
-        clip.write_videofile(file_path, fps=30)
+        clip.write_videofile(file_path, fps=VIDEO_FPS)
         clip.close()    
         return file_path
 
@@ -45,7 +45,7 @@ class VideoMaker(VideoMakerBase):
             print(clip.duration, clip.size, clip.fps)
         file_name = "./tmp/{:s}.mp4".format(self.__next_index__())
         merged_clip = concatenate_videoclips(clips)
-        merged_clip.write_videofile(file_name, fps=30)
+        merged_clip.write_videofile(file_name, fps=VIDEO_FPS)
         merged_clip.close()
         for clip in clips:
             clip.close()
@@ -59,7 +59,7 @@ class VideoMaker(VideoMakerBase):
             frame[height - 1 - i] *= delta * delta * delta * delta
         return frame
 
-    def __add_text_to_video__(self, file_name, intervals, duration):
+    def __add_text_to_video__(self, file_name, intervals, duration, icon=None):
         output_file_name = "tmp/" + self.__next_index__() + ".mp4"
         
         cap = cv2.VideoCapture(file_name)
@@ -68,9 +68,9 @@ class VideoMaker(VideoMakerBase):
 
         events_index = 0
 
-        res_writer = cv2.VideoWriter(output_file_name, cv2.VideoWriter_fourcc(*'XVID'), 30.0, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        res_writer = cv2.VideoWriter(output_file_name, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
 
-        fps = 30
+        fps = VIDEO_FPS
         cur_time = 0.0
 
         while cap.isOpened():
@@ -105,6 +105,10 @@ class VideoMaker(VideoMakerBase):
             amount += 1
             if (amount + 1) % 10 == 0:
                 print(amount + 1)
+
+            if icon != None:
+                pass
+
             res_writer.write(frame)
 
         cap.release()
@@ -112,7 +116,7 @@ class VideoMaker(VideoMakerBase):
 
         return output_file_name
 
-    def make(self, intervals, emotions, overlay=None):
+    def make(self, intervals, emotions, icon=None, overlay=None):
         files = []
         duration = 0
         for i in range(len(intervals)):
@@ -134,5 +138,5 @@ class VideoMaker(VideoMakerBase):
         print(files)
 
         full = self.__merge_videos__(files)
-        full_with_text = self.__add_text_to_video__(full, intervals, duration)
+        full_with_text = self.__add_text_to_video__(full, intervals, duration, icon)
         return full_with_text
