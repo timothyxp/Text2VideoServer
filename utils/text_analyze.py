@@ -47,23 +47,36 @@ class TextAnalyze(TextAnalyzeBase):
                         else:
                             sentence_scores[sent] += word_frequencies[word]
         import heapq  
-        summary_sentences = heapq.nlargest(3, sentence_scores, key=sentence_scores.get)
+        summary_sentences = heapq.nlargest(7, sentence_scores, key=sentence_scores.get)
 
         summary = ' '.join(summary_sentences)
         return summary
 
+    def __make_content_video__(self, href):
+        return {
+            'type': 'video',
+            'href': href,
+        }
+        
+    def __make_content_image__(self, src):
+        return {
+            'type': 'image',
+            'src': src,
+        }
 
     def analyze(self, text):
-        print(text)
         text = self.__summarize__(text)
-        print(text)
-        videos_href = []
-
+        videos_href = {}
+        videos = []
         for statement in text.split('.'):
+            if len(statement) == 0:
+                continue
+            print("Searching for:", statement)
             query = {
                 'search_query': statement,
                 'sp':YOUTUBE_FILTER
             }
+            videos_href[statement] = []
             query = urllib.parse.urlencode(query)
 
             url = f"https://www.youtube.com/results?" + query
@@ -74,18 +87,18 @@ class TextAnalyze(TextAnalyzeBase):
 
             for video in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
                 href = 'https://www.youtube.com' + video['href']
-                videos_href.append(href)
-                break
-
-        count_words = len(list(filter(lambda x: x != '', text.replace('/n', ' ').replace(',', ' ').split(' '))))
+                videos_href[statement].append(self.__make_content_video__(href))
+                videos.append(href)
+                print("Link:", href)
 
         return {
             'emotion': DEFAULT_EMOTION,
-            'videos': videos_href,
-            'images': [
-                'https://avatars.mds.yandex.net/get-marketpic/1594519/market_CbgUEV3RDAUW1iIYtYTxAg/orig',
-                'https://wallbox.ru/wallpapers/main/201239/eda-a3605149a117.jpg',
-                'https://im0-tub-ru.yandex.net/i?id=77bb6764fc6a184f1517caf6567bce4f&n=13'
-            ],
-            'length': count_words * 2
+            'videos': videos,
+            # 'images': [
+            #     'https://avatars.mds.yandex.net/get-marketpic/1594519/market_CbgUEV3RDAUW1iIYtYTxAg/orig',
+            #     'https://wallbox.ru/wallpapers/main/201239/eda-a3605149a117.jpg',
+            #     'https://im0-tub-ru.yandex.net/i?id=77bb6764fc6a184f1517caf6567bce4f&n=13'
+            # ],
+            'data': videos_href,
+            'length': len(text) * 1.3
         }
