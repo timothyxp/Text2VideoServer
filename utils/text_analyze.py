@@ -4,8 +4,8 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 from config import DEFAULT_EMOTION, YOUTUBE_FILTER
-import bs4 as bs  
-import urllib.request  
+import bs4 as bs
+import urllib.request
 import re
 import nltk
 from nltk.corpus import stopwords
@@ -28,14 +28,14 @@ class TextAnalyze(TextAnalyzeBase):
             if new_article_text != None and len(new_article_text) >= 20:
                 return new_article_text
             return article_text
-        article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)  
-        article_text = re.sub(r'\s+', ' ', article_text)  
-        formatted_article_text = re.sub('[^А-Яа-я]',' ', article_text) 
-        formatted_article_text = re.sub(r'\s+', ' ', formatted_article_text)  
-        sentence_list = nltk.sent_tokenize(article_text)  
+        article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)
+        article_text = re.sub(r'\s+', ' ', article_text)
+        formatted_article_text = re.sub('[^А-Яа-я]',' ', article_text)
+        formatted_article_text = re.sub(r'\s+', ' ', formatted_article_text)
+        sentence_list = nltk.sent_tokenize(article_text)
         mystopwords = stopwords.words('russian') + ['это', 'наш' , 'тыс', 'млн', 'млрд', u'также',  'т', 'д', '-', '-']
-        word_frequencies = {}  
-        for word in nltk.word_tokenize(formatted_article_text):  
+        word_frequencies = {}
+        for word in nltk.word_tokenize(formatted_article_text):
             if word not in mystopwords:
                 if word not in word_frequencies.keys():
                     word_frequencies[word] = 1
@@ -43,10 +43,10 @@ class TextAnalyze(TextAnalyzeBase):
                     word_frequencies[word] += 1
         maximum_frequncy = max(word_frequencies.values())
 
-        for word in word_frequencies.keys():  
+        for word in word_frequencies.keys():
             word_frequencies[word] = (word_frequencies[word]/maximum_frequncy)
-        sentence_scores = {}  
-        for sent in sentence_list:  
+        sentence_scores = {}
+        for sent in sentence_list:
             for word in nltk.word_tokenize(sent.lower()):
                 if word in word_frequencies.keys():
                     if len(sent.split(' ')) < 30:
@@ -54,7 +54,7 @@ class TextAnalyze(TextAnalyzeBase):
                             sentence_scores[sent] = word_frequencies[word]
                         else:
                             sentence_scores[sent] += word_frequencies[word]
-        import heapq  
+        import heapq
         summary_sentences = heapq.nlargest(7, sentence_scores, key=sentence_scores.get)
 
         summary = ' '.join(summary_sentences)
@@ -65,7 +65,7 @@ class TextAnalyze(TextAnalyzeBase):
             'type': 'video',
             'href': href,
         }
-        
+
     def __make_content_image__(self, src):
         return {
             'type': 'image',
