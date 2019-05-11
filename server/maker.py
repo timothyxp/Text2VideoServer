@@ -33,7 +33,7 @@ def make():
             print(image_src)
             ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
 
-    res_file = config.maker.make(ints, "none")
+    res_file = config.maker.make(ints, "none", icon = "downloaded/new_icon.png")
 
     return json.dumps({
         'type': 'ok',

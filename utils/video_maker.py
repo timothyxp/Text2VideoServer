@@ -93,16 +93,17 @@ class VideoMaker(VideoMakerBase):
         return frame
 
     def __add_text_to_video__(self, file_name, intervals, duration, icon=None):
+        icon_overlay = None
+        icon_width = 0
+        icon_height = 0
+        if icon != None:
+            icon_overlay = np.array(Image.open(icon).resize((ICON_SIZE, ICON_SIZE), Image.ANTIALIAS))
+            icon_height, icon_width, _ = icon_overlay.shape
         output_file_name = "tmp/" + self.__next_index__() + ".mp4"
-        
         cap = cv2.VideoCapture(file_name)
-    
         amount = 0
-
         events_index = 0
-
         res_writer = cv2.VideoWriter(output_file_name, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
-
         fps = VIDEO_FPS
         cur_time = 0.0
 
@@ -140,7 +141,10 @@ class VideoMaker(VideoMakerBase):
                 print(amount + 1)
 
             if icon != None:
-                pass
+                for i in range(icon_height):
+                    for j in range(icon_width):
+                        if icon_overlay[i][j][3] != 0:
+                            frame[ICON_MARGIN + i][ICON_MARGIN + j] = icon_overlay[i][j][:3]
 
             res_writer.write(frame)
 
