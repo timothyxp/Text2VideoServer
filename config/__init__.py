@@ -7,4 +7,6 @@ YOUTUBE_FILTER = 'EgQQARgB'
 
 DEFAULT_EMOTION = "unemotion"
 
+VIDEOS_COUNT = 2
+
 
