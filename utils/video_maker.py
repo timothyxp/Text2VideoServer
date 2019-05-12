@@ -179,8 +179,12 @@ class VideoMaker(VideoMakerBase):
 
                     textWidth = len(text) * LETTER_WIDTH
                     if textWidth <= IMAGE_WIDTH - 200:
-                        # draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
-                        draw.text((width // 2 - textWidth // 2, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                        if TEXT_MODE == 'RIGHT':
+                            draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                        elif TEXT_MODE == 'CENTER':
+                            draw.text((width // 2 - textWidth // 2, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                        elif TEXT_MODE == 'LEFT':
+                            draw.text((TEXT_RIGHT_PADDING, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
                     else:
                         line1 = []
                         line2 = text.split(' ')
@@ -211,10 +215,15 @@ class VideoMaker(VideoMakerBase):
                             if len(text2) != 0:
                                 text2 += " "
                             text2 += elem
-                        # draw.text((width - TEXT_RIGHT_PADDING - len(text1) * LETTER_WIDTH, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
-                        # draw.text((width - TEXT_RIGHT_PADDING - (len(text2) + (len(text1) - len(text2)) // 2) * LETTER_WIDTH, height - TEXT_BOTTOM_PADDING), text2, font = font)
-                        draw.text((width // 2 - len(text1) * LETTER_WIDTH // 2, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
-                        draw.text((width // 2 - len(text2) * LETTER_WIDTH // 2, height - TEXT_BOTTOM_PADDING), text2, font = font)
+                        if TEXT_MODE == 'RIGHT':
+                            draw.text((width - TEXT_RIGHT_PADDING - len(text1) * LETTER_WIDTH, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                            draw.text((width - TEXT_RIGHT_PADDING - (len(text2) + (len(text1) - len(text2)) // 2) * LETTER_WIDTH, height - TEXT_BOTTOM_PADDING), text2, font = font)
+                        elif TEXT_MODE == 'CENTER':
+                            draw.text((width // 2 - len(text1) * LETTER_WIDTH // 2, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                            draw.text((width // 2 - len(text2) * LETTER_WIDTH // 2, height - TEXT_BOTTOM_PADDING), text2, font = font)
+                        elif TEXT_MODE == 'LEFT':
+                            draw.text((TEXT_RIGHT_PADDING, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                            draw.text((TEXT_RIGHT_PADDING, height - TEXT_BOTTOM_PADDING), text2, font = font)
                     frame = np.array(image_pil)
             amount += 1
             if (amount + 1) % 10 == 0:
