@@ -10,6 +10,8 @@ import re
 import nltk
 from nltk.corpus import stopwords
 
+from summa import summarizer
+
 class TextAnalyzeBase(ABC):
     def __init__(self):
         pass
@@ -20,7 +22,11 @@ class TextAnalyzeBase(ABC):
 
 class TextAnalyze(TextAnalyzeBase):
     def __summarize__(self, article_text):
-        if len(article_text) <= 100:
+        print(len(article_text))
+        if len(article_text) <= 500:
+            new_article_text = summarizer.summarize(article_text)
+            if new_article_text != None and len(new_article_text) >= 20:
+                return new_article_text
             return article_text
         article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)  
         article_text = re.sub(r'\s+', ' ', article_text)  
@@ -66,13 +72,29 @@ class TextAnalyze(TextAnalyzeBase):
             'src': src,
         }
 
+    def __in_apostrofs__(self, text):
+        res = []
+        while text.find('\"') != -1:
+            first_index = text.find('\"')
+            text = text[first_index + 1:]
+            second_index = text.find('\"')
+            if second_index == -1:
+                break
+            res.append(text[:second_index])
+            text = text[second_index + 1:]
+        return res
+
     def analyze(self, text):
         text = self.__summarize__(text)
         videos_href = {}
         videos = []
         for statement in text.split('.'):
+            statement = statement.strip()
             if len(statement) == 0:
                 continue
+            in_apostrofs = self.__in_apostrofs__(statement)
+            print(statement)
+            print(in_apostrofs)
             print("Searching for:", statement)
             query = {
                 'search_query': statement,

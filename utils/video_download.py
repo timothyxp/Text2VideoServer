@@ -30,11 +30,21 @@ class VideoDownload(VideoDownloadBase):
 
     def download(self, href):
         print(self.errored)
+        
+        token = href.split('=')[1]
+
+        file_path = path.join(DOWNLOAD_PATH, token) + '.mp4'
+
+        if path.exists(file_path):
+            print('Already exists')
+            return token
+
         if href in self.errored:
             print('Was errored before')
             return None
         else:
             print('Wasn\'t errored')
+
         try:
             yt = pytube.YouTube(href)
 
@@ -44,18 +54,11 @@ class VideoDownload(VideoDownloadBase):
                 .filter(resolution='720p') \
                 .first()
 
-            token = href.split('=')[1]
             if video == None:
                 self.errored[href] = True
                 self.__save_cache__()
                 return None
             subtype = video.subtype
-
-            file_path = path.join(DOWNLOAD_PATH, token) + '.' + subtype
-
-            if path.exists(file_path):
-                print('Already exists')
-                return token
 
             print('Downloading')
 
