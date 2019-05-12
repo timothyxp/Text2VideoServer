@@ -125,6 +125,18 @@ class VideoMaker(VideoMakerBase):
             
             cur_time += 1.0 / fps
 
+            if overlay != None and OVERLAY_ENABLED:
+                for i in range(overlay_height):
+                    for j in range(overlay_width):
+                        if overlay_img[i][j][3] >= 200:
+                            frame[i][j] = overlay_img[i][j][:3]
+            
+            if icon != None:
+                for i in range(icon_height):
+                    for j in range(icon_width):
+                        if icon_overlay[i][j][3] != 0:
+                            frame[ICON_MARGIN + i][ICON_MARGIN + j] = icon_overlay[i][j][:3]
+
             frame = self.__make_drop_shadow__(frame)
             frame *= 255
             frame = np.array(frame, dtype='uint8')
@@ -145,7 +157,7 @@ class VideoMaker(VideoMakerBase):
                     cur = ''
                     txts = []
                     for s in splited:
-                        if (len(cur) + len(s) + 1) * 17 <= IMAGE_WIDTH - 200:
+                        if (len(cur) + len(s) + 1) * LETTER_WIDTH <= (IMAGE_WIDTH - 500) * 2:
                             if len(cur) != 0:
                                 cur += " "
                             cur += s
@@ -165,25 +177,48 @@ class VideoMaker(VideoMakerBase):
                             text = txt
                         cur_shift += diff * len(txt)
 
-                    textWidth = len(text) * 17
+                    textWidth = len(text) * LETTER_WIDTH
+                    if textWidth <= IMAGE_WIDTH - 200:
+                        # draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                        draw.text((width // 2 - textWidth // 2, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                    else:
+                        line1 = []
+                        line2 = text.split(' ')
+                        len1 = 0
+                        len2 = 0
+                        for elem in line2:
+                            len2 += len(elem)
+                        len2 += len(line2) - 1
+                        while len1 < len2:
+                            line1.append(line2[0])
+                            line2 = line2[1:]
+                            len1 = 0
+                            len2 = 0
+                            for elem in line1:
+                                len1 += len(elem)
+                            len1 += len(line1) - 1
+                            for elem in line2:
+                                len2 += len(elem)
+                            len2 += len(line2) - 1
 
-                    draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                        text1 = ''
+                        text2 = ''
+                        for elem in line1:
+                            if len(text1) != 0:
+                                text1 += " "
+                            text1 += elem
+                        for elem in line2:
+                            if len(text2) != 0:
+                                text2 += " "
+                            text2 += elem
+                        # draw.text((width - TEXT_RIGHT_PADDING - len(text1) * LETTER_WIDTH, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                        # draw.text((width - TEXT_RIGHT_PADDING - (len(text2) + (len(text1) - len(text2)) // 2) * LETTER_WIDTH, height - TEXT_BOTTOM_PADDING), text2, font = font)
+                        draw.text((width // 2 - len(text1) * LETTER_WIDTH // 2, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                        draw.text((width // 2 - len(text2) * LETTER_WIDTH // 2, height - TEXT_BOTTOM_PADDING), text2, font = font)
                     frame = np.array(image_pil)
             amount += 1
             if (amount + 1) % 10 == 0:
                 print(amount + 1)
-
-            if icon != None:
-                for i in range(icon_height):
-                    for j in range(icon_width):
-                        if icon_overlay[i][j][3] != 0:
-                            frame[ICON_MARGIN + i][ICON_MARGIN + j] = icon_overlay[i][j][:3]
-
-            if overlay != None and OVERLAY_ENABLED:
-                for i in range(overlay_height):
-                    for j in range(overlay_width):
-                        if overlay_img[i][j][3] >= 200:
-                            frame[i][j] = overlay_img[i][j][:3]
 
             res_writer.write(frame)
 
