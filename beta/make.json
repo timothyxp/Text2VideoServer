@@ -2,44 +2,33 @@
   "intervals": [
     {
       "type": "video",
-      "text": "Some text 1",
+      "text": "На станции \"Деловой центр\" столичного метрополитена установили Железный трон из сериала \"Игра престолов\", сфотографироваться на нем могут все пассажиры, сообщает пресс-служба Московского метрополитена",
       "video_begin": 10,
-      "video_end": 20,
+      "video_end": 25,
       "begin": 0,
-      "end": 10,
-      "href": "https://www.youtube.com/watch?v=J5fu3nK2-ko"
+      "end": 15,
+      "href": "https://www.youtube.com/watch?v=xAi_bAauqec"
     },
     {
       "type": "image",
-      "text": "Some text 2",
-      "begin": 10,
+      "text": "Кроме того, участники проекта \"Музыка в метро\" исполнили на станции знаменитый саундтрек к \"Игре престолов\", написанный композитором Рамином Джавади",
+      "begin": 15,
       "end": 20,
-      "href": "https://greenglobaltravel.com/wp-content/uploads/Guanaco_Patagonia-edited.jpg"
+      "href": "https://avatars.mds.yandex.net/get-kinopoisk-post-img/1642096/2af8b42cd06d1caaece63d15dc521c76/960x540"
     },
     {
-      "type": "video",
-      "text": "Some text 3",
-      "video_begin": 40,
-      "video_end": 50,
+      "type": "image",
+      "text": "Актеры на протяжении нескольких часов фотографировались с пассажирами метро",
       "begin": 20,
       "end": 30,
-      "href": "https://www.youtube.com/watch?v=5Aficf_A6aY"
+      "href": "https://www.mos.ru/upload/newsfeed/newsfeed/13(52688).jpg"
     },
     {
       "type": "image",
-      "text": "Some text 4",
+      "text": "Также можно было сделать снимок и на Железном троне",
       "begin": 30,
       "end": 35,
-      "href": "https://cdn.cnn.com/cnnnext/dam/assets/170407220916-04-iconic-mountains-matterhorn-restricted.jpg"
-    },
-    {
-      "type": "video",
-      "text": "Some text 5",
-      "video_begin": 75,
-      "video_end": 80,
-      "begin": 35,
-      "end": 40,
-      "href": "https://www.youtube.com/watch?v=J5fu3nK2-ko"
+      "href": "https://cs.pikabu.ru/post_img/big/2013/04/25/8/1366890081_71456535.jpg"
     }
   ]
 }

@@ -92,13 +92,23 @@ class VideoMaker(VideoMakerBase):
             frame[height - 1 - i] *= delta * delta * delta
         return frame
 
-    def __add_text_to_video__(self, file_name, intervals, duration, icon=None):
+    def __add_text_to_video__(self, file_name, intervals, duration, icon=None, overlay=None):
         icon_overlay = None
         icon_width = 0
         icon_height = 0
         if icon != None:
             icon_overlay = np.array(Image.open(icon).resize((ICON_SIZE, ICON_SIZE), Image.ANTIALIAS))
             icon_height, icon_width, _ = icon_overlay.shape
+
+        overlay_img = None
+        overlay_width = 0
+        overlay_height = 0
+        if overlay != None:
+            img = Image.open(overlay)
+            pref_width = int(IMAGE_HEIGHT * img.width / img.height)
+            overlay_img = np.array(img.resize((pref_width, IMAGE_HEIGHT), Image.ANTIALIAS))
+            overlay_height, overlay_width, _ = overlay_img.shape
+
         output_file_name = "tmp/" + self.__next_index__() + ".mp4"
         cap = cv2.VideoCapture(file_name)
         amount = 0
@@ -130,9 +140,32 @@ class VideoMaker(VideoMakerBase):
                     image_pil = Image.fromarray(frame)
                     draw = ImageDraw.Draw(image_pil)
                     font = ImageFont.truetype('fonts/Roboto-Regular.ttf', TEXT_SIZE)
-                    text = interval.text
                     
-                    textWidth = len(text) * 30
+                    splited = interval.text.split(' ')
+                    cur = ''
+                    txts = []
+                    for s in splited:
+                        if (len(cur) + len(s) + 1) * 17 <= IMAGE_WIDTH - 200:
+                            if len(cur) != 0:
+                                cur += " "
+                            cur += s
+                        else:
+                            txts.append(cur)
+                            cur = s
+                    if len(cur) != 0:
+                        txts.append(cur)
+
+                    text = ""
+                    cur_shift = 0
+                    diff = (interval.end - interval.begin) / len(interval.text)
+                    for txt in txts:
+                        from_time = interval.begin + cur_shift
+                        to_time = interval.begin + cur_shift + diff * len(txt)
+                        if from_time <= cur_time and cur_time <= to_time:
+                            text = txt
+                        cur_shift += diff * len(txt)
+
+                    textWidth = len(text) * 17
 
                     draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
                     frame = np.array(image_pil)
@@ -145,6 +178,12 @@ class VideoMaker(VideoMakerBase):
                     for j in range(icon_width):
                         if icon_overlay[i][j][3] != 0:
                             frame[ICON_MARGIN + i][ICON_MARGIN + j] = icon_overlay[i][j][:3]
+
+            if overlay != None and OVERLAY_ENABLED:
+                for i in range(overlay_height):
+                    for j in range(overlay_width):
+                        if overlay_img[i][j][3] >= 200:
+                            frame[i][j] = overlay_img[i][j][:3]
 
             res_writer.write(frame)
 
@@ -226,7 +265,7 @@ class VideoMaker(VideoMakerBase):
         print(files)
 
         full = self.__merge_videos__(files)
-        full_with_text = self.__add_text_to_video__(full, intervals, duration, icon)
+        full_with_text = self.__add_text_to_video__(full, intervals, duration, icon, overlay)
         self.__copy_to_file__(full_with_text, "tmp/" + hsh + ".mp4")
         self.__copy_to_file__(full_with_text, "tmp/" + hsh + ".avi")
         return full_with_text
