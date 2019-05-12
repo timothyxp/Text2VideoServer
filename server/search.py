@@ -4,7 +4,10 @@ from flask import request, abort
 
 from config.configuration import Config
 
-from config import DOWNLOAD_PATH
+from config import *
+from utils.conf import *
+
+from utils.load_json import load_json
 
 from os import path
 
@@ -14,6 +17,9 @@ import json
 def search():
     if not request.json:
         return abort(400)
+
+    if DEMO:
+        return load_json("beta/search.json")
 
     data = request.get_json()
 

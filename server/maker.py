@@ -7,6 +7,10 @@ from config.configuration import Config
 from data.ImageInterval import ImageInterval
 from data.VideoInterval import VideoInterval
 
+from utils.load_json import load_json
+
+from utils.conf import *
+
 import json
 
 from utils.image_download import load_image
@@ -15,7 +19,11 @@ from utils.image_download import load_image
 def make():
     if not request.json:
         return abort(400)
-    data = request.get_json()
+
+    if DEMO:
+        data = json.loads(load_json("beta/make.json"))
+    else:
+        data = request.get_json()
     
     config = Config()
 
