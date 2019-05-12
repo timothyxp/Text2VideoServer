@@ -26,18 +26,20 @@ def search():
     config = Config()
 
     data = data["text"]
+    print(data)
     data = config.analyzer.analyze(data)
+    print(data)
     videos = []
 
     bad_videos = {}
 
-    for video in data['videos']:
-        token = config.downloader.download(video)
-        if token == None:
-            bad_videos[video] = True
-            continue
-        video_path = path.join(DOWNLOAD_PATH, token)
-        videos.append(video_path)
+    # for video in data['videos']:
+    #     token = config.downloader.download(video)
+    #     if token == None:
+    #         bad_videos[video] = True
+    #         continue
+    #     video_path = path.join(DOWNLOAD_PATH, token)
+    #     videos.append(video_path)
 
     print(data)
     for sentence in data['data']:
