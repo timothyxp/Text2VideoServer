@@ -4,7 +4,7 @@ import os
 from data.ImageInterval import ImageInterval
 from data.VideoInterval import VideoInterval
 
-from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, ImageClip
+from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, ImageClip, CompositeAudioClip, AudioClip, AudioFileClip
 from utils.image_download import load_image
 
 from utils.conf import *
@@ -271,17 +271,19 @@ class VideoMaker(VideoMakerBase):
         return str(cur)
 
     def __copy_to_file__(self, from_file, to_file):
-        cap = cv2.VideoCapture(from_file)
-        res_writer = cv2.VideoWriter(to_file, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        print(from_file, to_file)
+        my_clip = VideoFileClip(from_file)
+        my_clip.write_videofile(to_file)
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if ret == False:
-                break
-            res_writer.write(frame)
-
-        cap.release()
-        res_writer.release()
+    def __add_audio_to_video__(self, file_path, duration):
+        print(file_path)
+        my_clip = VideoFileClip(file_path)
+        audio_background = AudioFileClip('downloaded/audio.mp3').subclip(0, duration - 1)
+        final_audio = CompositeAudioClip([audio_background])
+        final_clip = my_clip.set_audio(final_audio)
+        result_path = "tmp/" + self.__next_index__() + ".mp4"
+        final_clip.write_videofile(result_path)
+        return result_path
 
     def make(self, intervals, emotions, icon=None, overlay=None):
         hsh = self.__make_hash__(intervals)
@@ -310,6 +312,6 @@ class VideoMaker(VideoMakerBase):
 
         full = self.__merge_videos__(files)
         full_with_text = self.__add_text_to_video__(full, intervals, duration, icon, overlay)
-        self.__copy_to_file__(full_with_text, "tmp/" + hsh + ".mp4")
-        self.__copy_to_file__(full_with_text, "tmp/" + hsh + ".avi")
-        return full_with_text
+        full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration)
+        self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
+        return full_with_text_audio

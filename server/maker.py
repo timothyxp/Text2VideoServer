@@ -21,9 +21,13 @@ def make():
         return abort(400)
 
     if DEMO:
-        data = json.loads(load_json("beta/make.json"))
+        data = json.loads(load_json("beta/make_top.json"))
     else:
         data = request.get_json()
+    print(data)
+
+    with open("make_req.json", 'w') as out:
+        out.write(json.dumps(data))
     
     config = Config()
 
