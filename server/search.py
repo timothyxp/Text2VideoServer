@@ -24,13 +24,19 @@ def make_error(error):
 
 def load_from_link(link):
     try:
-        scraped_data = urllib.request.urlopen('https://www.rbc.ru/politics/11/05/2019/5cd695299a7947d61332d050?from=from_main')  
+        scraped_data = urllib.request.urlopen(link)  
         article = scraped_data.read()
         parsed_article = bs.BeautifulSoup(article, 'lxml')
         paragraphs = parsed_article.find_all('p')
         article_text = ""
         for p in paragraphs:  
+            print("paragraph")
             article_text += p.text
+        # divs = parsed_article.find_all('div')
+        # for div in divs:  
+        #     print("div")
+        #     article_text += div.text
+        print(article_text)
         return article_text, None
     except Exception as error:
         print(error)
