@@ -1,1 +1,1 @@
-print(f'Invoking __init__.py for {__name__}')
+print("Invoking __init__.py for {:s}".format(__name__))
