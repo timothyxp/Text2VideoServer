@@ -2,7 +2,7 @@ from server.app import app
 
 from flask import request, abort
 
-from config.configuration import Config
+from config.configuration import config
 
 from data.ImageInterval import ImageInterval
 from data.VideoInterval import VideoInterval
@@ -44,6 +44,62 @@ def checkVideoInterval(interval):
         return 'Text cannot be empty'
     return None
 
+def load_config(data):
+    result = {
+        'fps': VIDEO_FPS,
+        'width': IMAGE_WIDTH,
+        'height': IMAGE_HEIGHT,
+        'textSize': TEXT_SIZE,
+        'textMode': TEXT_MODE,
+        'shadowSize': SHADOW_SIZE,
+        'iconSize': ICON_SIZE,
+        'iconMargin': ICON_MARGIN,
+        'letterWidth': LETTER_WIDTH
+    }
+
+    if 'fps' in data:
+        try:
+            fps = int(data['fps'])
+            result['fps'] = fps
+        except:
+            print("Unknown fps format", data['fps'])
+    
+    if 'width' in data:
+        try:
+            width = int(data['width'])
+            result['width'] = width
+        except:
+            print("Unknown width format", data['width'])
+
+    if 'height' in data:
+        try:
+            height = int(data['height'])
+            if height in [240 , 360, 720, 1080]:
+                result['height'] = height
+            else:
+                print("Unknown height format", data['height'])
+        except:
+            print("Unknown height format", data['height'])
+
+    if 'textSize' in data:
+        try:
+            textSize = int(data['textSize'])
+            result['textSize'] = textSize
+        except:
+            print("Unknown text size format", data['textSize'])
+    
+    if 'textMode' in data:
+        try:
+            textMode = str(data['textMode'])
+            if textMode in ['LEFT', 'RIGHT', 'CENTER']:
+                result['textMode'] = textMode
+            else:
+                print("Unknown text mode format", data['textMode'])
+        except:
+            print("Unknown text mode format", data['textMode'])
+    
+    return result
+
 @app.route('/make', methods=['POST'])
 def make():
     if not request.json:
@@ -58,11 +114,13 @@ def make():
     with open("make_req.json", 'w') as out:
         out.write(json.dumps(data))
     
-    config = Config()
-
+    # config = Config()
 
     ints = []
     error = None
+
+    video_config = load_config(data)
+    print(video_config)
 
     if not 'intervals' in data:
         error = "Unknown request format"
@@ -77,11 +135,11 @@ def make():
                 error = checkVideoInterval(interval)
                 if error != None:
                     break
-                video_loaded = config.downloader.download(interval['href'])
+                video_loaded = config.downloader.download(interval['href'], video_config)
                 if video_loaded == None:
                     error = "Sorry but we cannot download one or more of videos you selected"
                     break
-                video_src = "downloaded/" + video_loaded + ".mp4"
+                video_src =video_loaded
                 print(video_src)
                 ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
             elif interval['type'] == 'image':
@@ -93,7 +151,7 @@ def make():
                 ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
 
     if error == None:
-        res_file = config.maker.make(ints, "none", icon="downloaded/new_icon.png", overlay="downloaded/overlay.png")
+        res_file = config.maker.make(ints, "none", video_config, icon="downloaded/new_icon.png", overlay="downloaded/overlay.png")
         return json.dumps({
             'type': 'ok',
             'url': res_file

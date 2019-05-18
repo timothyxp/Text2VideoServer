@@ -8,3 +8,5 @@ class Config:
         self.analyzer = TextAnalyze()
         self.downloader = VideoDownload()
         self.maker = VideoMaker()
+
+config = Config()
