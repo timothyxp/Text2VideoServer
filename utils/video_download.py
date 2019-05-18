@@ -40,7 +40,7 @@ class VideoDownload(VideoDownloadBase):
             return token
 
         if href in self.errored:
-            print('Was errored before')
+            print('Was errored before', href)
             return None
         else:
             print('Wasn\'t errored')

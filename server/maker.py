@@ -74,7 +74,11 @@ def make():
             error = checkVideoInterval(interval)
             if error != None:
                 break
-            video_src = "downloaded/" + config.downloader.download(interval['href']) + ".mp4"
+            video_loaded = config.downloader.download(interval['href'])
+            if video_loaded == None:
+                error = "Sorry but we cannot download one or more of videos you selected"
+                break
+            video_src = "downloaded/" + video_loaded + ".mp4"
             print(video_src)
             ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
         elif interval['type'] == 'image':
