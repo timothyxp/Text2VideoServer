@@ -66,6 +66,10 @@ def make():
     error = None
 
     for interval in intervals:
+        print(interval)
+        if not 'type' in interval:
+            error = 'For one or more intervals type is not specified'
+            break
         if interval['type'] == 'video':
             error = checkVideoInterval(interval)
             if error != None:
@@ -74,7 +78,7 @@ def make():
             print(video_src)
             ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
         elif interval['type'] == 'image':
-            error = checkVideoInterval(interval)
+            error = checkImageInterval(interval)
             if error != None:
                 break
             image_src = load_image(interval['href'])
