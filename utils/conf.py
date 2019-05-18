@@ -11,7 +11,7 @@ ICON_MARGIN = 50
 ICON_SIZE = 64
 LETTER_WIDTH = int(22 * 1.2)
 
-DEMO = True
+DEMO = False
 OVERLAY_ENABLED = False
 
 TEXT_MODE = 'LEFT' # 'CENTER' - center, 'LEFT' - left, 'RIGHT' - right
