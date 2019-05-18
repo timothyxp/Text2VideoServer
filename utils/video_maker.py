@@ -103,7 +103,7 @@ class VideoMaker(VideoMakerBase):
         overlay_img = None
         overlay_width = 0
         overlay_height = 0
-        if overlay != None:
+        if OVERLAY_ENABLED and overlay != None:
             img = Image.open(overlay)
             pref_width = int(IMAGE_HEIGHT * img.width / img.height)
             overlay_img = np.array(img.resize((pref_width, IMAGE_HEIGHT), Image.ANTIALIAS))
