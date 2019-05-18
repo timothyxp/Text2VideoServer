@@ -313,5 +313,5 @@ class VideoMaker(VideoMakerBase):
         full = self.__merge_videos__(files)
         full_with_text = self.__add_text_to_video__(full, intervals, duration, icon, overlay)
         full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration)
-        self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
+        # self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
         return full_with_text_audio
