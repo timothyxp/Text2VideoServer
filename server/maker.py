@@ -60,34 +60,37 @@ def make():
     
     config = Config()
 
-    intervals = data['intervals']
 
     ints = []
     error = None
 
-    for interval in intervals:
-        print(interval)
-        if not 'type' in interval:
-            error = 'For one or more intervals type is not specified'
-            break
-        if interval['type'] == 'video':
-            error = checkVideoInterval(interval)
-            if error != None:
+    if not 'intervals' in data:
+        error = "Unknown request format"
+    else:
+        intervals = data['intervals']
+        for interval in intervals:
+            print(interval)
+            if not 'type' in interval:
+                error = 'For one or more intervals type is not specified'
                 break
-            video_loaded = config.downloader.download(interval['href'])
-            if video_loaded == None:
-                error = "Sorry but we cannot download one or more of videos you selected"
-                break
-            video_src = "downloaded/" + video_loaded + ".mp4"
-            print(video_src)
-            ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
-        elif interval['type'] == 'image':
-            error = checkImageInterval(interval)
-            if error != None:
-                break
-            image_src = load_image(interval['href'])
-            print(image_src)
-            ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
+            if interval['type'] == 'video':
+                error = checkVideoInterval(interval)
+                if error != None:
+                    break
+                video_loaded = config.downloader.download(interval['href'])
+                if video_loaded == None:
+                    error = "Sorry but we cannot download one or more of videos you selected"
+                    break
+                video_src = "downloaded/" + video_loaded + ".mp4"
+                print(video_src)
+                ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
+            elif interval['type'] == 'image':
+                error = checkImageInterval(interval)
+                if error != None:
+                    break
+                image_src = load_image(interval['href'])
+                print(image_src)
+                ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
 
     if error == None:
         res_file = config.maker.make(ints, "none", icon="downloaded/new_icon.png", overlay="downloaded/overlay.png")
