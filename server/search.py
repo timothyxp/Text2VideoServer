@@ -19,7 +19,7 @@ def search():
         return abort(400)
 
     if DEMO:
-        return load_json("beta/search.json")
+        return load_json("beta/search_top.json")
 
     data = request.get_json()
 
