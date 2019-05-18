@@ -5,3 +5,4 @@ pyopenssl
 flask-socketio
 moviepy
 nltk
+lxml
