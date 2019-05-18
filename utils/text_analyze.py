@@ -109,7 +109,7 @@ class TextAnalyze(TextAnalyzeBase):
         }
         query = urllib.parse.urlencode(query)
 
-        url = f"https://www.youtube.com/results?" + query
+        url = "https://www.youtube.com/results?" + query
 
         response = urllib.request.urlopen(url)
         html = response.read()

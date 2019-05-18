@@ -12,7 +12,7 @@ from utils.conf import *
 from PIL import ImageFont, ImageDraw, Image
 
 class VideoMakerBase:
-    def make(self, intervals, emotions, icon=None, overlay=None):
+    def make(self, intervals, emotions, config, icon=None, overlay=None):
         pass
 
 class VideoMaker(VideoMakerBase):
@@ -23,10 +23,10 @@ class VideoMaker(VideoMakerBase):
         self.index = self.index + 1
         return str(self.index)
 
-    def __apply_transformation__(self, file_path, duration):
+    def __apply_transformation__(self, file_path, duration, config):
         output_file_path = "tmp/" + self.__next_index__() + ".mp4"
         cap = cv2.VideoCapture(file_path)
-        res_writer = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        res_writer = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc(*'XVID'), config['fps'], (config['width'], config['height']))
 
         scale = IMAGE_SCALING
         cur_time = 0.0
@@ -38,14 +38,14 @@ class VideoMaker(VideoMakerBase):
 
             height, width, colors = frame.shape
 
-            cur_time += 1.0 / VIDEO_FPS
+            cur_time += 1.0 / config['fps']
 
             to_x = width / 2 * scale * cur_time / duration
             to_y = height / 2 * scale * cur_time / duration
 
             img = Image.fromarray(frame)
             img = img.crop((to_x, to_y, width - to_x, height - to_y))
-            img = img.resize((IMAGE_WIDTH, IMAGE_HEIGHT), Image.ANTIALIAS)
+            img = img.resize((config['width'], config['height']), Image.ANTIALIAS)
             frame = np.array(img)
             res_writer.write(frame)
 
@@ -53,24 +53,25 @@ class VideoMaker(VideoMakerBase):
         res_writer.release()
         return output_file_path
 
-    def __make_image_video__(self, image_src, duration):
+    def __make_image_video__(self, image_src, duration, config):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
         clip = ImageClip(image_src, duration=duration)
-        clip.write_videofile(file_path, fps=VIDEO_FPS)
+        clip.write_videofile(file_path, fps=config['fps'])
         clip.close()
 
-        file_path = self.__apply_transformation__(file_path, duration)
+        file_path = self.__apply_transformation__(file_path, duration, config)
 
         return file_path
 
-    def __make_video_video__(self, video_src, begin, end):
+    def __make_video_video__(self, video_src, begin, end, config):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
+        print("Making video from video", video_src, begin, end, file_path)
         clip = VideoFileClip(video_src).subclip(begin, end)
-        clip.write_videofile(file_path, fps=VIDEO_FPS)
+        clip.write_videofile(file_path, fps=config['fps'])
         clip.close()    
         return file_path
 
-    def __merge_videos__(self, files):
+    def __merge_videos__(self, files, config):
         clips = []
         for file in files:
             clips.append(VideoFileClip(file))
@@ -78,34 +79,34 @@ class VideoMaker(VideoMakerBase):
             print(clip.duration, clip.size, clip.fps)
         file_name = "./tmp/{:s}.mp4".format(self.__next_index__())
         merged_clip = concatenate_videoclips(clips)
-        merged_clip.write_videofile(file_name, fps=VIDEO_FPS)
+        merged_clip.write_videofile(file_name, fps=config['fps'])
         merged_clip.close()
         for clip in clips:
             clip.close()
         return file_name
 
-    def __make_drop_shadow__(self, frame):
+    def __make_drop_shadow__(self, frame, config):
         height, width, layers = frame.shape
-        shadow = int(height * SHADOW_SIZE)
+        shadow = int(height * config['shadowSize'])
         for i in range(shadow):
             delta = i / shadow
             frame[height - 1 - i] *= delta * delta * delta
         return frame
 
-    def __add_text_to_video__(self, file_name, intervals, duration, icon=None, overlay=None):
+    def __add_text_to_video__(self, file_name, intervals, duration, config, icon=None, overlay=None):
         icon_overlay = None
         icon_width = 0
         icon_height = 0
         if icon != None:
-            icon_overlay = np.array(Image.open(icon).resize((ICON_SIZE, ICON_SIZE), Image.ANTIALIAS))
+            icon_overlay = np.array(Image.open(icon).resize((config['iconSize'], config['iconSize']), Image.ANTIALIAS))
             icon_height, icon_width, _ = icon_overlay.shape
 
         overlay_img = None
         overlay_width = 0
         overlay_height = 0
-        if overlay != None:
+        if OVERLAY_ENABLED and overlay != None:
             img = Image.open(overlay)
-            pref_width = int(IMAGE_HEIGHT * img.width / img.height)
+            pref_width = int(config['height'] * img.width / img.height)
             overlay_img = np.array(img.resize((pref_width, IMAGE_HEIGHT), Image.ANTIALIAS))
             overlay_height, overlay_width, _ = overlay_img.shape
 
@@ -113,8 +114,8 @@ class VideoMaker(VideoMakerBase):
         cap = cv2.VideoCapture(file_name)
         amount = 0
         events_index = 0
-        res_writer = cv2.VideoWriter(output_file_name, cv2.VideoWriter_fourcc(*'XVID'), VIDEO_FPS, (IMAGE_WIDTH, IMAGE_HEIGHT))
-        fps = VIDEO_FPS
+        res_writer = cv2.VideoWriter(output_file_name, cv2.VideoWriter_fourcc(*'XVID'), config['fps'], (config['width'], config['height']))
+        fps = config['fps']
         cur_time = 0.0
 
         while cap.isOpened():
@@ -135,9 +136,9 @@ class VideoMaker(VideoMakerBase):
                 for i in range(icon_height):
                     for j in range(icon_width):
                         if icon_overlay[i][j][3] != 0:
-                            frame[ICON_MARGIN + i][ICON_MARGIN + j] = icon_overlay[i][j][:3]
+                            frame[config['iconMargin'] + i][config['iconMargin'] + j] = icon_overlay[i][j][:3]
 
-            frame = self.__make_drop_shadow__(frame)
+            frame = self.__make_drop_shadow__(frame, config)
             frame *= 255
             frame = np.array(frame, dtype='uint8')
 
@@ -151,13 +152,13 @@ class VideoMaker(VideoMakerBase):
                 if interval.begin <= cur_time and cur_time < interval.end:
                     image_pil = Image.fromarray(frame)
                     draw = ImageDraw.Draw(image_pil)
-                    font = ImageFont.truetype('fonts/Roboto-Regular.ttf', TEXT_SIZE)
+                    font = ImageFont.truetype('fonts/Roboto-Regular.ttf', config['textSize'])
                     
                     splited = interval.text.split(' ')
                     cur = ''
                     txts = []
                     for s in splited:
-                        if (len(cur) + len(s) + 1) * LETTER_WIDTH <= (IMAGE_WIDTH - 500) * 2:
+                        if (len(cur) + len(s) + 1) * config['letterWidth'] <= (config['width'] - 500) * 2:
                             if len(cur) != 0:
                                 cur += " "
                             cur += s
@@ -177,14 +178,14 @@ class VideoMaker(VideoMakerBase):
                             text = txt
                         cur_shift += diff * len(txt)
 
-                    textWidth = len(text) * LETTER_WIDTH
-                    if textWidth <= IMAGE_WIDTH - 200:
-                        if TEXT_MODE == 'RIGHT':
-                            draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
-                        elif TEXT_MODE == 'CENTER':
-                            draw.text((width // 2 - textWidth // 2, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
-                        elif TEXT_MODE == 'LEFT':
-                            draw.text((TEXT_RIGHT_PADDING, height - TEXT_SIZE - TEXT_BOTTOM_PADDING), text, font = font)
+                    textWidth = len(text) * config['letterWidth']
+                    if textWidth <= config['width'] - 200:
+                        if config['textMode'] == 'RIGHT':
+                            draw.text((width - TEXT_RIGHT_PADDING - textWidth, height - config['textSize'] - TEXT_BOTTOM_PADDING), text, font = font)
+                        elif config['textMode'] == 'CENTER':
+                            draw.text((width // 2 - textWidth // 2, height - config['textSize'] - TEXT_BOTTOM_PADDING), text, font = font)
+                        elif config['textMode'] == 'LEFT':
+                            draw.text((TEXT_RIGHT_PADDING, height - config['textSize'] - TEXT_BOTTOM_PADDING), text, font = font)
                     else:
                         line1 = []
                         line2 = text.split(' ')
@@ -215,14 +216,14 @@ class VideoMaker(VideoMakerBase):
                             if len(text2) != 0:
                                 text2 += " "
                             text2 += elem
-                        if TEXT_MODE == 'RIGHT':
-                            draw.text((width - TEXT_RIGHT_PADDING - len(text1) * LETTER_WIDTH, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
-                            draw.text((width - TEXT_RIGHT_PADDING - (len(text2) + (len(text1) - len(text2)) // 2) * LETTER_WIDTH, height - TEXT_BOTTOM_PADDING), text2, font = font)
-                        elif TEXT_MODE == 'CENTER':
-                            draw.text((width // 2 - len(text1) * LETTER_WIDTH // 2, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
-                            draw.text((width // 2 - len(text2) * LETTER_WIDTH // 2, height - TEXT_BOTTOM_PADDING), text2, font = font)
-                        elif TEXT_MODE == 'LEFT':
-                            draw.text((TEXT_RIGHT_PADDING, height - int(TEXT_SIZE * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                        if config['textMode'] == 'RIGHT':
+                            draw.text((width - TEXT_RIGHT_PADDING - len(text1) * LETTER_WIDTH, height - int(config['textSize'] * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                            draw.text((width - TEXT_RIGHT_PADDING - (len(text2) + (len(text1) - len(text2)) // 2) * config['letterWidth'], height - TEXT_BOTTOM_PADDING), text2, font = font)
+                        elif config['textMode'] == 'CENTER':
+                            draw.text((width // 2 - len(text1) * config['letterWidth'] // 2, height - int(config['textSize'] * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
+                            draw.text((width // 2 - len(text2) * config['letterWidth'] // 2, height - TEXT_BOTTOM_PADDING), text2, font = font)
+                        elif config['textMode'] == 'LEFT':
+                            draw.text((TEXT_RIGHT_PADDING, height - int(config['textSize'] * 1.4) - TEXT_BOTTOM_PADDING), text1, font = font)
                             draw.text((TEXT_RIGHT_PADDING, height - TEXT_BOTTOM_PADDING), text2, font = font)
                     frame = np.array(image_pil)
             amount += 1
@@ -242,7 +243,7 @@ class VideoMaker(VideoMakerBase):
             ans += ord(c)
         return ans
 
-    def __make_hash__(self, intervals):
+    def __make_hash__(self, intervals, config):
         mod = 100000000
         prime = 37
         cur = 0
@@ -267,7 +268,7 @@ class VideoMaker(VideoMakerBase):
                 cur += self.__make_str_hash__(interval.src)
                 cur *= prime
                 cur %= mod
-        cur += int(VIDEO_FPS)
+        cur += int(config['fps'])
         return str(cur)
 
     def __copy_to_file__(self, from_file, to_file):
@@ -275,7 +276,7 @@ class VideoMaker(VideoMakerBase):
         my_clip = VideoFileClip(from_file)
         my_clip.write_videofile(to_file)
 
-    def __add_audio_to_video__(self, file_path, duration):
+    def __add_audio_to_video__(self, file_path, duration, config):
         print(file_path)
         my_clip = VideoFileClip(file_path)
         audio_background = AudioFileClip('downloaded/audio.mp3').subclip(0, duration - 1)
@@ -285,8 +286,8 @@ class VideoMaker(VideoMakerBase):
         final_clip.write_videofile(result_path)
         return result_path
 
-    def make(self, intervals, emotions, icon=None, overlay=None):
-        hsh = self.__make_hash__(intervals)
+    def make(self, intervals, emotions, config, icon=None, overlay=None):
+        hsh = self.__make_hash__(intervals, config)
         if os.path.exists("tmp/" + hsh + ".mp4"):
             return "tmp/" + hsh + ".mp4"
 
@@ -296,12 +297,12 @@ class VideoMaker(VideoMakerBase):
             if type(intervals[i]) == ImageInterval:
                 print("Working on making image video")
                 img = load_image(intervals[i].src)
-                file_name = self.__make_image_video__(img, intervals[i].end - intervals[i].begin)
+                file_name = self.__make_image_video__(img, intervals[i].end - intervals[i].begin, config)
                 duration += intervals[i].end - intervals[i].begin
                 files.append(file_name)
                 print(file_name)
             elif type(intervals[i]) == VideoInterval:
-                file_name = self.__make_video_video__(intervals[i].src, intervals[i].video_begin, intervals[i].video_end)
+                file_name = self.__make_video_video__(intervals[i].src, intervals[i].video_begin, intervals[i].video_end, config)
                 duration += intervals[i].end - intervals[i].begin
                 files.append(file_name)
             else:
@@ -310,8 +311,8 @@ class VideoMaker(VideoMakerBase):
         print()
         print(files)
 
-        full = self.__merge_videos__(files)
-        full_with_text = self.__add_text_to_video__(full, intervals, duration, icon, overlay)
-        full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration)
-        self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
+        full = self.__merge_videos__(files, config)
+        full_with_text = self.__add_text_to_video__(full, intervals, duration, config, icon=icon, overlay=overlay)
+        full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration, config)
+        # self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
         return full_with_text_audio
