@@ -28,19 +28,20 @@ class VideoDownload(VideoDownloadBase):
         with open('error_cache.txt', 'w') as out:
             out.write(json.dumps(self.errored))
 
-    def download(self, href):
+    def download(self, href, config):
         print(self.errored)
         
         token = href.split('=')[1]
 
-        file_path = path.join(DOWNLOAD_PATH, token) + '.mp4'
+        file_name = token + '-' + str(config['height'])
+        file_path = DOWNLOAD_PATH + "/" + file_name + ".mp4"
 
         if path.exists(file_path):
             print('Already exists')
-            return token
+            return file_path
 
         if href in self.errored:
-            print('Was errored before')
+            print('Was errored before', href)
             return None
         else:
             print('Wasn\'t errored')
@@ -51,7 +52,7 @@ class VideoDownload(VideoDownloadBase):
             video = yt.streams\
                 .filter(subtype='mp4') \
                 .filter(progressive=False) \
-                .filter(resolution='720p') \
+                .filter(resolution=str(config['height']) + "p") \
                 .first()
 
             if video == None:
@@ -64,10 +65,10 @@ class VideoDownload(VideoDownloadBase):
 
             video.download(
                 DOWNLOAD_PATH,
-                filename=token
+                filename=file_name
             )
 
-            return token
+            return file_path
         except:
             print('Error handled')
             self.errored[href] = True

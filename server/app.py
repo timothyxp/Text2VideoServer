@@ -12,7 +12,7 @@ from server import search
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     if request.method == 'OPTIONS':
-        response.headers['Access-Control-Allow-Methods'] = 'DELETE, GET, POST, PUT'
+        response.headers['Access-Control-Allow-Methods'] = 'DELETE, GET, POST, PUT, OPTIONS'
         headers = request.headers.get('Access-Control-Request-Headers')
         if headers:
             response.headers['Access-Control-Allow-Headers'] = headers
