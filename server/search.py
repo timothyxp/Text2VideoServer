@@ -51,6 +51,7 @@ def search():
         return load_json("beta/search_top.json")
 
     req = request.get_json()
+    print(req)
 
     config = Config()
 
