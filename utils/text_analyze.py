@@ -103,23 +103,27 @@ class TextAnalyze(TextAnalyzeBase):
         print("Searching for", text)
         if text in self.search_cache:
             return self.search_cache[text]
-        query = {
-            'search_query': text,
-            'sp':YOUTUBE_FILTER
-        }
-        query = urllib.parse.urlencode(query)
+        try:
+            query = {
+                'search_query': text,
+                'sp':YOUTUBE_FILTER
+            }
+            query = urllib.parse.urlencode(query)
 
-        url = "https://www.youtube.com/results?" + query
+            url = "https://www.youtube.com/results?" + query
 
-        response = urllib.request.urlopen(url)
-        html = response.read()
-        soup = BeautifulSoup(html, 'html.parser')
-        ans = []
-        for video in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
-            ans.append(video['href'])
-        self.search_cache[text] = ans
-        self.__save_search_cache__()
-        return self.search_cache[text]
+            response = urllib.request.urlopen(url)
+            html = response.read()
+            soup = BeautifulSoup(html, 'html.parser')
+            ans = []
+            for video in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
+                ans.append(video['href'])
+            self.search_cache[text] = ans
+            self.__save_search_cache__()
+            return self.search_cache[text]
+        except Exception as error:
+            print(error)
+            return []
 
     def __search__(self, text):
         words = text.split(' ')
