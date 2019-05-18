@@ -59,7 +59,7 @@ def search():
     if not 'type' in req:
         error = "Type field cannot be empty"
     reqType = None
-    if error != None:
+    if error == None:
         reqType = str(req['type'])
         if not reqType in ['link', 'text']:
             error = "Unknown request type: " + reqType
@@ -71,6 +71,8 @@ def search():
         error = "Text field is empty"
     if reqType == 'link' and not 'link' in req:
         error = "Link field is empty"
+
+    print("Request type", reqType)
 
     if error != None:
         return make_error(error)
