@@ -11,7 +11,36 @@ from utils.load_json import load_json
 
 from os import path
 
+import bs4 as bs  
+import urllib.request  
+
 import json
+
+def make_error(error):
+    return json.dumps({
+        'type': 'error',
+        'error': str(error)
+    })
+
+def load_from_link(link):
+    try:
+        scraped_data = urllib.request.urlopen(link)  
+        article = scraped_data.read()
+        parsed_article = bs.BeautifulSoup(article, 'lxml')
+        paragraphs = parsed_article.find_all('p')
+        article_text = ""
+        for p in paragraphs:  
+            print("paragraph")
+            article_text += p.text
+        # divs = parsed_article.find_all('div')
+        # for div in divs:  
+        #     print("div")
+        #     article_text += div.text
+        print(article_text)
+        return article_text, None
+    except Exception as error:
+        print(error)
+        return None, "We cannot download article for your link"
 
 @app.route('/search', methods=["POST"])
 def search():
@@ -21,25 +50,47 @@ def search():
     if DEMO:
         return load_json("beta/search_top.json")
 
-    data = request.get_json()
+    req = request.get_json()
+    print(req)
 
     config = Config()
 
-    data = data["text"]
-    print(data)
-    data = config.analyzer.analyze(data)
-    print(data)
+    error = None
+    if not 'type' in req:
+        error = "Type field cannot be empty"
+    reqType = None
+    if error == None:
+        reqType = str(req['type'])
+        if not reqType in ['link', 'text']:
+            error = "Unknown request type: " + reqType
+
+    if error != None:
+        return make_error(error)
+
+    if reqType == 'text' and not 'text' in req:
+        error = "Text field is empty"
+    if reqType == 'link' and not 'link' in req:
+        error = "Link field is empty"
+
+    print("Request type", reqType)
+
+    if error != None:
+        return make_error(error)
+
+    data = ''
+    if reqType == 'text':
+        data = req["text"]
+    else:
+        data, error = load_from_link(req['link'])
+        if error != None:
+            return make_error(error)
+
+    data, error = config.analyzer.analyze(data)
+    if error != None:
+        return make_error(error)
     videos = []
 
     bad_videos = {}
-
-    # for video in data['videos']:
-    #     token = config.downloader.download(video)
-    #     if token == None:
-    #         bad_videos[video] = True
-    #         continue
-    #     video_path = path.join(DOWNLOAD_PATH, token)
-    #     videos.append(video_path)
 
     print(data)
     for sentence in data['data']:
