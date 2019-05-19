@@ -294,12 +294,15 @@ class VideoMaker(VideoMakerBase):
         final_clip.write_videofile(result_path)
         return result_path
 
-    def make(self, intervals, emotions, config, icon=None, overlay=None):
+    def make(self, intervals, emotions, config, current_id=None, set_process_status=None, icon=None, overlay=None):
         hsh = self.__make_hash__(intervals, config)
         if os.path.exists("tmp/" + hsh + ".mp4"):
             return "tmp/" + hsh + ".mp4"
         files = []
         duration = 0
+        if set_process_status != None:
+            set_process_status(current_id, "Начинаем верстать Ваше видео")
+        index = 0
         for i in range(len(intervals)):
             if type(intervals[i]) == ImageInterval:
                 print("Working on making image video")
@@ -314,9 +317,18 @@ class VideoMaker(VideoMakerBase):
                 files.append(file_name)
             else:
                 print("Unknown object")
+            index += 1
+            if set_process_status != None:
+                set_process_status(current_id, "Уже готово фрагментов: {:d}/{:d}".format(index, len(intervals)))
         print(files)
+        if set_process_status != None:
+            set_process_status(current_id, "Сливаем фидео фрагменты")
         full = self.__merge_videos__(files, config)
+        if set_process_status != None:
+            set_process_status(current_id, "Добавляем текст на видео")
         full_with_text = self.__add_text_to_video__(full, intervals, duration, config, icon=icon, overlay=overlay)
+        if set_process_status != None:
+            set_process_status(current_id, "Добавляем аудио дорожку")
         full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration, config)
         # self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
         return full_with_text_audio
