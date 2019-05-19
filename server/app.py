@@ -1,13 +1,14 @@
 # This Python file uses the following encoding: utf-8
 
 from flask import Flask, request
+from flask_socketio import SocketIO
 
 app = Flask("__app__", static_folder='tmp', static_url_path='')
+socketio = SocketIO(app)
 
 from server import main_handler
 from server import maker
 from server import search
-
 
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = "*"
