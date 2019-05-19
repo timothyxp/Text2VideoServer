@@ -66,7 +66,7 @@ class VideoMaker(VideoMakerBase):
     def __make_video_video__(self, video_src, begin, end, config):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
         print("Making video from video", video_src, begin, end, file_path)
-        clip = VideoFileClip(video_src).subclip(begin, end).resize((config['height'], config['width']))
+        clip = VideoFileClip(video_src).subclip(begin, end).resize((config['width'], config['height']))
         clip.write_videofile(file_path, fps=config['fps'])
         clip.close()    
         return file_path
@@ -87,10 +87,11 @@ class VideoMaker(VideoMakerBase):
 
     def __make_drop_shadow__(self, frame, config):
         height, width, layers = frame.shape
-        shadow = int(height * config['shadowSize'])
-        for i in range(shadow):
-            delta = i / shadow
-            frame[height - 1 - i] *= delta * delta * delta
+        if config['shadowEnabled']:
+            shadow = int(height * config['shadowSize'])
+            for i in range(shadow):
+                delta = i / shadow
+                frame[height - 1 - i] *= delta * delta * delta
         return frame
 
     def __add_text_to_video__(self, file_name, intervals, duration, config, icon=None, overlay=None):
@@ -122,21 +123,26 @@ class VideoMaker(VideoMakerBase):
             ret, frame = cap.read()
             if ret == False:
                 break
-            frame = np.array(frame, dtype='float32') / 255
+                
+            if icon != None:
+                for i in range(icon_height):
+                    for j in range(icon_width):
+                        if icon_overlay[i][j][3] != 0:
+                            r = icon_overlay[i][j][2]
+                            g = icon_overlay[i][j][1]
+                            b = icon_overlay[i][j][0]
+                            a = icon_overlay[i][j][3]
+                            frame[config['iconMargin'] + i][config['iconMargin'] + j] = [r, g, b]
             
-            cur_time += 1.0 / fps
-
             if overlay != None and OVERLAY_ENABLED:
                 for i in range(overlay_height):
                     for j in range(overlay_width):
                         if overlay_img[i][j][3] >= 200:
                             frame[i][j] = overlay_img[i][j][:3]
+
+            frame = np.array(frame, dtype='float32') / 255
             
-            if icon != None:
-                for i in range(icon_height):
-                    for j in range(icon_width):
-                        if icon_overlay[i][j][3] != 0:
-                            frame[config['iconMargin'] + i][config['iconMargin'] + j] = icon_overlay[i][j][:3]
+            cur_time += 1.0 / fps
 
             frame = self.__make_drop_shadow__(frame, config)
             frame *= 255
