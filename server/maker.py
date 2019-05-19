@@ -13,6 +13,8 @@ from utils.conf import *
 
 import json
 
+import time
+
 from utils.image_download import load_image
 
 def checkImageInterval(interval):
@@ -54,7 +56,8 @@ def load_config(data):
         'shadowSize': SHADOW_SIZE,
         'iconSize': ICON_SIZE,
         'iconMargin': ICON_MARGIN,
-        'letterWidth': LETTER_WIDTH
+        'letterWidth': LETTER_WIDTH,
+        'shadowEnabled': SHADOW_ENABLED
     }
 
     if 'fps' in data:
@@ -97,6 +100,18 @@ def load_config(data):
                 print("Unknown text mode format", data['textMode'])
         except:
             print("Unknown text mode format", data['textMode'])
+
+    if 'shadowEnabled' in data:
+        try:
+            shadowEnabled = str(data['shadowEnabled'])
+            if shadowEnabled == "True":
+                result['shadowEnabled'] = True
+            elif shadowEnabled == "False":
+                result['shadowEnabled'] = False
+            else:
+                print("Unknown shadow enabled format", data['shadowEnabled'])
+        except:
+            print("Unknown shadow enabled format", data['shadowEnabled'])
     
     return result
 
@@ -122,9 +137,14 @@ def make():
     video_config = load_config(data)
     print(video_config)
 
+    download_time = 0
+    download_start = 0
+    download_finish = 0;
+
     if not 'intervals' in data:
         error = "Unknown request format"
     else:
+        download_start = time.time()
         intervals = data['intervals']
         for interval in intervals:
             print(interval)
@@ -149,9 +169,16 @@ def make():
                 image_src = load_image(interval['href'])
                 print(image_src)
                 ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
+        download_finish = time.time()
+        download_time = download_finish - download_start
 
     if error == None:
-        res_file = config.maker.make(ints, "none", video_config, icon="downloaded/new_icon.png", overlay="downloaded/overlay.png")
+        making_time = 0
+        make_begin = time.time()
+        res_file = config.maker.make(ints, "none", video_config, icon=None, overlay=None)
+        make_end = time.time()
+        making_time = make_end - make_begin
+        print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
         return json.dumps({
             'type': 'ok',
             'url': res_file
