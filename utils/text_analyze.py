@@ -3,7 +3,7 @@ import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
 
-from config import DEFAULT_EMOTION, YOUTUBE_FILTER
+from config import DEFAULT_EMOTION, YOUTUBE_FILTER, MIN_TEXT_LENGTH
 import bs4 as bs
 import urllib.request
 import re
@@ -137,7 +137,7 @@ class TextAnalyze(TextAnalyzeBase):
             if len(now) != 0:
                 now += ' '
             now += words[index]
-            if len(now) >= 30:
+            if len(now) >= MIN_TEXT_LENGTH:
                 buffer = self.__make_search__(now)
                 for elem in buffer:
                     if not elem in used:
