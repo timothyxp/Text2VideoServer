@@ -49,11 +49,21 @@ class VideoDownload(VideoDownloadBase):
         try:
             yt = pytube.YouTube(href)
 
-            video = yt.streams\
+            video_filter = yt.streams\
                 .filter(subtype='mp4') \
-                .filter(progressive=False) \
-                .filter(resolution=str(config['height']) + "p") \
-                .first()
+                .filter(progressive=False)
+            quality = 0
+            for video in video_filter.all():
+                resolution = video.resolution
+                print(video.url)
+                if resolution != None:
+                    resolution = int(video.resolution.replace('p', ''))
+                    if resolution <= config['height'] and resolution >= quality:
+                        quality = resolution
+            video_filter = video_filter.filter(resolution=str(quality) + "p")
+            video = video_filter.first()
+
+            print("Quality: " + str(quality) + "p")
 
             if video == None:
                 self.errored[href] = True
@@ -69,8 +79,8 @@ class VideoDownload(VideoDownloadBase):
             )
 
             return file_path
-        except:
-            print('Error handled')
+        except Exception as error:
+            print('Error handled', error)
             self.errored[href] = True
             self.__save_cache__()
             return None
