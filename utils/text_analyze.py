@@ -3,12 +3,13 @@ import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
 
-from config import DEFAULT_EMOTION, YOUTUBE_FILTER
+from config import DEFAULT_EMOTION, YOUTUBE_FILTER, MIN_TEXT_LENGTH
 import bs4 as bs
 import urllib.request
 import re
 import nltk
 from nltk.corpus import stopwords
+import heapq
 
 from summa import summarizer
 
@@ -37,8 +38,8 @@ class TextAnalyze(TextAnalyzeBase):
         if len(article_text) <= 500:
             new_article_text = summarizer.summarize(article_text)
             if new_article_text != None and len(new_article_text) >= 20:
-                return new_article_text
-            return article_text
+                return new_article_text, None
+            return article_text, None
         article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)
         article_text = re.sub(r'\s+', ' ', article_text)
         formatted_article_text = re.sub('[^А-Яа-я]',' ', article_text)
@@ -52,6 +53,8 @@ class TextAnalyze(TextAnalyzeBase):
                     word_frequencies[word] = 1
                 else:
                     word_frequencies[word] += 1
+        if len(word_frequencies.values()) == 0:
+            return None, "К сожалению мы не можем обработать данный текст. Если Вы считаете, что это произошло по ошибке, сообщите нам."
         maximum_frequncy = max(word_frequencies.values())
 
         for word in word_frequencies.keys():
@@ -65,11 +68,10 @@ class TextAnalyze(TextAnalyzeBase):
                             sentence_scores[sent] = word_frequencies[word]
                         else:
                             sentence_scores[sent] += word_frequencies[word]
-        import heapq
         summary_sentences = heapq.nlargest(7, sentence_scores, key=sentence_scores.get)
 
         summary = ' '.join(summary_sentences)
-        return summary
+        return summary, None
 
     def __make_content_video__(self, href):
         return {
@@ -103,23 +105,27 @@ class TextAnalyze(TextAnalyzeBase):
         print("Searching for", text)
         if text in self.search_cache:
             return self.search_cache[text]
-        query = {
-            'search_query': text,
-            'sp':YOUTUBE_FILTER
-        }
-        query = urllib.parse.urlencode(query)
+        try:
+            query = {
+                'search_query': text,
+                'sp':YOUTUBE_FILTER
+            }
+            query = urllib.parse.urlencode(query)
 
-        url = "https://www.youtube.com/results?" + query
+            url = "https://www.youtube.com/results?" + query
 
-        response = urllib.request.urlopen(url)
-        html = response.read()
-        soup = BeautifulSoup(html, 'html.parser')
-        ans = []
-        for video in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
-            ans.append(video['href'])
-        self.search_cache[text] = ans
-        self.__save_search_cache__()
-        return self.search_cache[text]
+            response = urllib.request.urlopen(url)
+            html = response.read()
+            soup = BeautifulSoup(html, 'html.parser')
+            ans = []
+            for video in soup.findAll(attrs={'class': 'yt-uix-tile-link'}):
+                ans.append(video['href'])
+            self.search_cache[text] = ans
+            self.__save_search_cache__()
+            return self.search_cache[text]
+        except Exception as error:
+            print(error)
+            return []
 
     def __search__(self, text):
         words = text.split(' ')
@@ -131,7 +137,7 @@ class TextAnalyze(TextAnalyzeBase):
             if len(now) != 0:
                 now += ' '
             now += words[index]
-            if len(now) >= 30:
+            if len(now) >= MIN_TEXT_LENGTH:
                 buffer = self.__make_search__(now)
                 for elem in buffer:
                     if not elem in used:
@@ -152,7 +158,9 @@ class TextAnalyze(TextAnalyzeBase):
         return ans
 
     def analyze(self, text):
-        text = self.__summarize__(text)
+        text, error = self.__summarize__(text)
+        if error != None:
+            return None, error
         videos_href = {}
         videos = []
         for statement in text.split('.'):
@@ -175,4 +183,4 @@ class TextAnalyze(TextAnalyzeBase):
             'videos': videos,
             'data': videos_href,
             'length': len(text) * .2
-        }
+        }, None
