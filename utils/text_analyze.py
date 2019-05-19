@@ -3,7 +3,8 @@ import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
 
-from config import DEFAULT_EMOTION, YOUTUBE_FILTER, MIN_TEXT_LENGTH
+from config import DEFAULT_EMOTION, YOUTUBE_FILTER
+from utils.conf import *
 import bs4 as bs
 import urllib.request
 import re
