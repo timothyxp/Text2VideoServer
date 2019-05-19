@@ -11,6 +11,8 @@ from utils.conf import *
 
 from PIL import ImageFont, ImageDraw, Image
 
+from flask_socketio import emit
+
 class VideoMakerBase:
     def make(self, intervals, emotions, config, icon=None, overlay=None):
         pass
@@ -296,7 +298,6 @@ class VideoMaker(VideoMakerBase):
         hsh = self.__make_hash__(intervals, config)
         if os.path.exists("tmp/" + hsh + ".mp4"):
             return "tmp/" + hsh + ".mp4"
-
         files = []
         duration = 0
         for i in range(len(intervals)):
@@ -313,10 +314,7 @@ class VideoMaker(VideoMakerBase):
                 files.append(file_name)
             else:
                 print("Unknown object")
-
-        print()
         print(files)
-
         full = self.__merge_videos__(files, config)
         full_with_text = self.__add_text_to_video__(full, intervals, duration, config, icon=icon, overlay=overlay)
         full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration, config)

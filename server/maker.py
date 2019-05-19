@@ -1,4 +1,4 @@
-from server.app import app
+from server.app import app, socketio
 
 from flask import request, abort
 
@@ -6,6 +6,8 @@ from config.configuration import config
 
 from data.ImageInterval import ImageInterval
 from data.VideoInterval import VideoInterval
+
+from flask_socketio import send, emit
 
 from utils.load_json import load_json
 
@@ -115,21 +117,9 @@ def load_config(data):
     
     return result
 
-@app.route('/make', methods=['POST'])
-def make():
-    if not request.json:
-        return abort(400)
-
-    if DEMO:
-        data = json.loads(load_json("beta/make_top.json"))
-    else:
-        data = request.get_json()
-    print(data)
-
+def make_video(data):
     with open("make_req.json", 'w') as out:
         out.write(json.dumps(data))
-    
-    # config = Config()
 
     ints = []
     error = None
@@ -139,7 +129,7 @@ def make():
 
     download_time = 0
     download_start = 0
-    download_finish = 0;
+    download_finish = 0
 
     if not 'intervals' in data:
         error = "Unknown request format"
@@ -188,3 +178,88 @@ def make():
             'type': 'error', 
             'error': str(error)
         })
+
+@app.route('/make', methods=['POST'])
+def make():
+    if not request.json:
+        return abort(400)
+    if DEMO:
+        data = json.loads(load_json("beta/make_top.json"))
+    else:
+        data = request.get_json()
+    print(data)
+    return make_video
+
+@socketio.on('make')
+def make_socket_io(data):
+    print(data)
+    with open("make_req_socket.json", 'w') as out:
+        out.write(json.dumps(data))
+
+    ints = []
+    error = None
+
+    video_config = load_config(data)
+    print(video_config)
+
+    emit("message", "Configured successfully")
+
+    download_time = 0
+    download_start = 0
+    download_finish = 0
+
+    if not 'intervals' in data:
+        error = "Unknown request format"
+    else:
+        download_start = time.time()
+        intervals = data['intervals']
+        index = 0
+        for interval in intervals:
+            print(interval)
+            if not 'type' in interval:
+                error = 'For one or more intervals type is not specified'
+                break
+            if interval['type'] == 'video':
+                error = checkVideoInterval(interval)
+                if error != None:
+                    break
+                video_loaded = config.downloader.download(interval['href'], video_config)
+                if video_loaded == None:
+                    error = "Sorry but we cannot download one or more of videos you selected"
+                    break
+                video_src =video_loaded
+                print(video_src)
+                ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
+            elif interval['type'] == 'image':
+                error = checkImageInterval(interval)
+                if error != None:
+                    break
+                image_src = load_image(interval['href'])
+                print(image_src)
+                ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
+            index += 1
+            emit("message", "Downloaded: {:d}/{:d}".format(index, len(intervals)))
+        download_finish = time.time()
+        download_time = download_finish - download_start
+
+    if error == None:
+        making_time = 0
+        make_begin = time.time()
+        emit("message", "Making your video")
+        res_file = config.maker.make(ints, "none", video_config, info=True, icon=None, overlay=None)
+        make_end = time.time()
+        making_time = make_end - make_begin
+        print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
+        print(res_file)
+        try:
+            emit("video_make_result", json.dumps({
+                'type': 'ok',
+                'url': res_file
+            })) 
+        except Exception as error:
+            print(error)
+    else:
+        emit("video_make_result", json.dumps({
+            'type': 'error', 
+            'error': str(error)
+        }))
