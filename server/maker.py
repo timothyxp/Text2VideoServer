@@ -246,7 +246,7 @@ def make_socket_io(data):
         making_time = 0
         make_begin = time.time()
         emit("message", "Making your video")
-        res_file = config.maker.make(ints, "none", video_config, info=True, icon=None, overlay=None)
+        res_file = config.maker.make(ints, "none", video_config, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
         print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
