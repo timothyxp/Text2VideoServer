@@ -66,7 +66,7 @@ class VideoMaker(VideoMakerBase):
     def __make_video_video__(self, video_src, begin, end, config):
         file_path = "./tmp/{:s}.mp4".format(str(self.__next_index__()))
         print("Making video from video", video_src, begin, end, file_path)
-        clip = VideoFileClip(video_src).subclip(begin, end)
+        clip = VideoFileClip(video_src).subclip(begin, end).resize((config['height'], config['width']))
         clip.write_videofile(file_path, fps=config['fps'])
         clip.close()    
         return file_path
