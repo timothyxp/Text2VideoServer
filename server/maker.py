@@ -188,7 +188,7 @@ def make():
     else:
         data = request.get_json()
     print(data)
-    return make_video
+    return make_video(data)
 
 @socketio.on('make')
 def make_socket_io(data):
