@@ -85,7 +85,9 @@ def search():
         if error != None:
             return make_error(error)
 
-    data = config.analyzer.analyze(data)
+    data, error = config.analyzer.analyze(data)
+    if error != None:
+        return make_error(error)
     videos = []
 
     bad_videos = {}
