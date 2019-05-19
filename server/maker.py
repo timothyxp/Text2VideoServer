@@ -25,11 +25,13 @@ from utils.image_download import load_image
 
 working_status = {}
 
+
 def make_error(error):
     return json.dumps({
         'type': 'error',
         'error': str(error)
     })
+
 
 def checkImageInterval(interval):
     if not 'href' in interval:
@@ -42,6 +44,7 @@ def checkImageInterval(interval):
         return 'Text cannot be empty'
     return None
 
+
 def checkVideoInterval(interval):
     if not 'href' in interval:
         return 'Link to image cannot be empty'
@@ -50,7 +53,7 @@ def checkVideoInterval(interval):
         return 'Begin field cannot be empty'
     if not 'end' in interval:
         return 'End field cannot be empty'
-    
+
     if not 'video_begin' in interval:
         return 'Video_begin field cannot be empty'
     if not 'video_end' in interval:
@@ -59,6 +62,7 @@ def checkVideoInterval(interval):
     if not 'text' in interval:
         return 'Text cannot be empty'
     return None
+
 
 def load_config(data):
     result = {
@@ -80,7 +84,7 @@ def load_config(data):
             result['fps'] = fps
         except:
             print("Unknown fps format", data['fps'])
-    
+
     if 'width' in data:
         try:
             width = int(data['width'])
@@ -91,7 +95,7 @@ def load_config(data):
     if 'height' in data:
         try:
             height = int(data['height'])
-            if height in [240 , 360, 720, 1080]:
+            if height in [240, 360, 720, 1080]:
                 result['height'] = height
             else:
                 print("Unknown height format", data['height'])
@@ -104,7 +108,7 @@ def load_config(data):
             result['textSize'] = textSize
         except:
             print("Unknown text size format", data['textSize'])
-    
+
     if 'textMode' in data:
         try:
             textMode = str(data['textMode'])
@@ -126,7 +130,7 @@ def load_config(data):
                 print("Unknown shadow enabled format", data['shadowEnabled'])
         except:
             print("Unknown shadow enabled format", data['shadowEnabled'])
-    
+
     return result
 
 
@@ -136,11 +140,13 @@ def set_ready_status(current_id, res_file):
     working_status[current_id]['status'] = 'ready'
     working_status[current_id]['url'] = res_file
 
+
 def set_process_status(current_id, message):
     if current_id == None:
         return
     working_status[current_id]['status'] = 'process'
     working_status[current_id]['message'] = message
+
 
 def set_error_status(current_id, error):
     if current_id == None:
@@ -148,7 +154,8 @@ def set_error_status(current_id, error):
     working_status[current_id]['status'] = 'error'
     working_status[current_id]['error'] = error
 
-def make_video(data, current_id = None):
+
+def make_video(data, current_id=None):
     with open("make_req.json", 'w') as out:
         out.write(json.dumps(data))
 
@@ -157,7 +164,7 @@ def make_video(data, current_id = None):
 
     video_config = load_config(data)
     print(video_config)
-    set_process_status(current_id, "Configured")
+    set_process_status(current_id, "Инициализация")
 
     download_time = 0
     download_start = 0
@@ -178,22 +185,26 @@ def make_video(data, current_id = None):
                 error = checkVideoInterval(interval)
                 if error != None:
                     break
-                video_loaded = config.downloader.download(interval['href'], video_config)
+                video_loaded = config.downloader.download(
+                    interval['href'], video_config)
                 if video_loaded == None:
                     error = "Sorry but we cannot download one or more of videos you selected"
                     break
-                video_src =video_loaded
+                video_src = video_loaded
                 print(video_src)
-                ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
+                ints.append(VideoInterval(
+                    interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
             elif interval['type'] == 'image':
                 error = checkImageInterval(interval)
                 if error != None:
                     break
                 image_src = load_image(interval['href'])
                 print(image_src)
-                ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
+                ints.append(ImageInterval(
+                    interval['begin'], interval['end'], interval['text'], image_src))
             index += 1
-            set_process_status(current_id, "Загружено: {:d}/{:d}".format(index, len(intervals)))
+            set_process_status(
+                current_id, "Загружено: {:d}/{:d}".format(index, len(intervals)))
         set_process_status(current_id, "Все видео успешно загружены")
         download_finish = time.time()
         download_time = download_finish - download_start
@@ -201,10 +212,12 @@ def make_video(data, current_id = None):
     if error == None:
         making_time = 0
         make_begin = time.time()
-        res_file = config.maker.make(ints, "none", video_config, current_id=current_id, set_process_status=set_process_status, icon=None, overlay=None)
+        res_file = config.maker.make(ints, "none", video_config, current_id=current_id,
+                                     set_process_status=set_process_status, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
-        print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
+        print("Download time: {:.2f}, making time: {:.2f}".format(
+            download_time, making_time))
         if current_id != None:
             set_ready_status(current_id, res_file)
         return json.dumps({
@@ -215,15 +228,17 @@ def make_video(data, current_id = None):
         if current_id != None:
             set_error_status(current_id, str(error))
         return json.dumps({
-            'type': 'error', 
+            'type': 'error',
             'error': str(error)
         })
+
 
 def random_string():
     ans = ''
     for i in range(0, 20):
         ans += chr(ord('a') + np.random.randint(0, 25))
     return ans
+
 
 @app.route('/make', methods=['POST'])
 def make():
@@ -233,10 +248,12 @@ def make():
     print(data)
     return make_video(data)
 
+
 def proceed(current_id):
     working_status[current_id]['status'] = 'process'
     working_status[current_id]['message'] = 'Starting'
     make_video(working_status[current_id]['data'], current_id)
+
 
 @app.route('/status', methods=['POST'])
 def get_status():
@@ -269,6 +286,7 @@ def get_status():
     else:
         print(working_status[current_id])
 
+
 @app.route('/make_queue', methods=['POST'])
 def make_queued():
     if not request.json:
@@ -286,6 +304,7 @@ def make_queued():
         'type': 'ok',
         'id': working_id
     })
+
 
 @socketio.on('make')
 def make_socket_io(data):
@@ -320,22 +339,26 @@ def make_socket_io(data):
                 error = checkVideoInterval(interval)
                 if error != None:
                     break
-                video_loaded = config.downloader.download(interval['href'], video_config)
+                video_loaded = config.downloader.download(
+                    interval['href'], video_config)
                 if video_loaded == None:
                     error = "Sorry but we cannot download one or more of videos you selected"
                     break
-                video_src =video_loaded
+                video_src = video_loaded
                 print(video_src)
-                ints.append(VideoInterval(interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
+                ints.append(VideoInterval(
+                    interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
             elif interval['type'] == 'image':
                 error = checkImageInterval(interval)
                 if error != None:
                     break
                 image_src = load_image(interval['href'])
                 print(image_src)
-                ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
+                ints.append(ImageInterval(
+                    interval['begin'], interval['end'], interval['text'], image_src))
             index += 1
-            emit("message", "Downloaded: {:d}/{:d}".format(index, len(intervals)))
+            emit(
+                "message", "Downloaded: {:d}/{:d}".format(index, len(intervals)))
         download_finish = time.time()
         download_time = download_finish - download_start
 
@@ -343,20 +366,22 @@ def make_socket_io(data):
         making_time = 0
         make_begin = time.time()
         emit("message", "Making your video")
-        res_file = config.maker.make(ints, "none", video_config, icon=None, overlay=None)
+        res_file = config.maker.make(
+            ints, "none", video_config, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
-        print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
+        print("Download time: {:.2f}, making time: {:.2f}".format(
+            download_time, making_time))
         print(res_file)
         try:
             emit("video_make_result", json.dumps({
                 'type': 'ok',
                 'url': res_file
-            })) 
+            }))
         except Exception as error:
             print(error)
     else:
         emit("video_make_result", json.dumps({
-            'type': 'error', 
+            'type': 'error',
             'error': str(error)
         }))
