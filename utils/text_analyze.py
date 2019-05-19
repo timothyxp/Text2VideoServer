@@ -38,8 +38,8 @@ class TextAnalyze(TextAnalyzeBase):
         if len(article_text) <= 500:
             new_article_text = summarizer.summarize(article_text)
             if new_article_text != None and len(new_article_text) >= 20:
-                return new_article_text
-            return article_text
+                return new_article_text, None
+            return article_text, None
         article_text = re.sub(r'\[[0-9]*\]', ' ', article_text)
         article_text = re.sub(r'\s+', ' ', article_text)
         formatted_article_text = re.sub('[^А-Яа-я]',' ', article_text)
