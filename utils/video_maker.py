@@ -301,7 +301,7 @@ class VideoMaker(VideoMakerBase):
         files = []
         duration = 0
         if set_process_status != None:
-            set_process_status(current_id, "Начинаем верстать Ваше видео")
+            set_process_status(current_id, "Создаем структуру")
         index = 0
         for i in range(len(intervals)):
             if type(intervals[i]) == ImageInterval:
@@ -319,16 +319,16 @@ class VideoMaker(VideoMakerBase):
                 print("Unknown object")
             index += 1
             if set_process_status != None:
-                set_process_status(current_id, "Уже готово фрагментов: {:d}/{:d}".format(index, len(intervals)))
+                set_process_status(current_id, "Готово фрагментов: {:d}/{:d}".format(index, len(intervals)))
         print(files)
         if set_process_status != None:
-            set_process_status(current_id, "Сливаем фидео фрагменты")
+            set_process_status(current_id, "Сливаем видео")
         full = self.__merge_videos__(files, config)
         if set_process_status != None:
-            set_process_status(current_id, "Добавляем текст на видео")
+            set_process_status(current_id, "Добавляем текст")
         full_with_text = self.__add_text_to_video__(full, intervals, duration, config, icon=icon, overlay=overlay)
         if set_process_status != None:
-            set_process_status(current_id, "Добавляем аудио дорожку")
+            set_process_status(current_id, "Добавляем аудио")
         full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration, config)
         # self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
         return full_with_text_audio
