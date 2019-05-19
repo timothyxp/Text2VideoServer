@@ -142,7 +142,7 @@ def set_process_status(current_id, message):
     working_status[current_id]['status'] = 'process'
     working_status[current_id]['message'] = message
 
-def set_process_error(current_id, error):
+def set_error_status(current_id, error):
     if current_id == None:
         return
     working_status[current_id]['status'] = 'error'
@@ -193,14 +193,15 @@ def make_video(data, current_id = None):
                 print(image_src)
                 ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
             index += 1
-            set_process_status(current_id, "Downloaded: {:d}/{:d}".format(index, len(intervals)))
+            set_process_status(current_id, "Загружено: {:d}/{:d}".format(index, len(intervals)))
+        set_process_status(current_id, "Все видео успешно загружены")
         download_finish = time.time()
         download_time = download_finish - download_start
 
     if error == None:
         making_time = 0
         make_begin = time.time()
-        res_file = config.maker.make(ints, "none", video_config, icon=None, overlay=None)
+        res_file = config.maker.make(ints, "none", video_config, current_id=current_id, set_process_status=set_process_status, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
         print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
