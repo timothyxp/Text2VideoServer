@@ -9,6 +9,7 @@ import urllib.request
 import re
 import nltk
 from nltk.corpus import stopwords
+import heapq
 
 from summa import summarizer
 
@@ -52,6 +53,8 @@ class TextAnalyze(TextAnalyzeBase):
                     word_frequencies[word] = 1
                 else:
                     word_frequencies[word] += 1
+        if len(word_frequencies.values()) == 0:
+            return None, "К сожалению мы не можем обработать данный текст. Если Вы считаете, что это произошло по ошибке, сообщите нам."
         maximum_frequncy = max(word_frequencies.values())
 
         for word in word_frequencies.keys():
@@ -65,11 +68,10 @@ class TextAnalyze(TextAnalyzeBase):
                             sentence_scores[sent] = word_frequencies[word]
                         else:
                             sentence_scores[sent] += word_frequencies[word]
-        import heapq
         summary_sentences = heapq.nlargest(7, sentence_scores, key=sentence_scores.get)
 
         summary = ' '.join(summary_sentences)
-        return summary
+        return summary, None
 
     def __make_content_video__(self, href):
         return {
@@ -156,7 +158,9 @@ class TextAnalyze(TextAnalyzeBase):
         return ans
 
     def analyze(self, text):
-        text = self.__summarize__(text)
+        text, error = self.__summarize__(text)
+        if error != None:
+            return None, error
         videos_href = {}
         videos = []
         for statement in text.split('.'):
@@ -179,4 +183,4 @@ class TextAnalyze(TextAnalyzeBase):
             'videos': videos,
             'data': videos_href,
             'length': len(text) * .2
-        }
+        }, None
