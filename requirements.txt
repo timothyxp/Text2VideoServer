@@ -2,3 +2,7 @@ flask
 pytube
 beautifulsoup4
 pyopenssl
+flask-socketio
+moviepy
+nltk
+lxml
