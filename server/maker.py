@@ -2,6 +2,8 @@ from server.app import app, socketio
 
 from flask import request, abort
 
+import numpy as np
+
 from config.configuration import config
 
 from data.ImageInterval import ImageInterval
@@ -17,7 +19,17 @@ import json
 
 import time
 
+import threading
+
 from utils.image_download import load_image
+
+working_status = {}
+
+def make_error(error):
+    return json.dumps({
+        'type': 'error',
+        'error': str(error)
+    })
 
 def checkImageInterval(interval):
     if not 'href' in interval:
@@ -117,7 +129,26 @@ def load_config(data):
     
     return result
 
-def make_video(data):
+
+def set_ready_status(current_id, res_file):
+    if current_id == None:
+        return
+    working_status[current_id]['status'] = 'ready'
+    working_status[current_id]['url'] = res_file
+
+def set_process_status(current_id, message):
+    if current_id == None:
+        return
+    working_status[current_id]['status'] = 'process'
+    working_status[current_id]['message'] = message
+
+def set_process_error(current_id, error):
+    if current_id == None:
+        return
+    working_status[current_id]['status'] = 'error'
+    working_status[current_id]['error'] = error
+
+def make_video(data, current_id = None):
     with open("make_req.json", 'w') as out:
         out.write(json.dumps(data))
 
@@ -126,6 +157,7 @@ def make_video(data):
 
     video_config = load_config(data)
     print(video_config)
+    set_process_status(current_id, "Configured")
 
     download_time = 0
     download_start = 0
@@ -136,6 +168,7 @@ def make_video(data):
     else:
         download_start = time.time()
         intervals = data['intervals']
+        index = 0
         for interval in intervals:
             print(interval)
             if not 'type' in interval:
@@ -159,6 +192,8 @@ def make_video(data):
                 image_src = load_image(interval['href'])
                 print(image_src)
                 ints.append(ImageInterval(interval['begin'], interval['end'], interval['text'], image_src))
+            index += 1
+            set_process_status(current_id, "Downloaded: {:d}/{:d}".format(index, len(intervals)))
         download_finish = time.time()
         download_time = download_finish - download_start
 
@@ -169,26 +204,87 @@ def make_video(data):
         make_end = time.time()
         making_time = make_end - make_begin
         print("Download time: {:.2f}, making time: {:.2f}".format(download_time, making_time))
+        if current_id != None:
+            set_ready_status(current_id, res_file)
         return json.dumps({
             'type': 'ok',
             'url': res_file
         })
     else:
+        if current_id != None:
+            set_error_status(current_id, str(error))
         return json.dumps({
             'type': 'error', 
             'error': str(error)
         })
 
+def random_string():
+    ans = ''
+    for i in range(0, 20):
+        ans += chr(ord('a') + np.random.randint(0, 25))
+    return ans
+
 @app.route('/make', methods=['POST'])
 def make():
     if not request.json:
         return abort(400)
-    if DEMO:
-        data = json.loads(load_json("beta/make_top.json"))
-    else:
-        data = request.get_json()
+    data = request.get_json()
     print(data)
     return make_video(data)
+
+def proceed(current_id):
+    working_status[current_id]['status'] = 'process'
+    working_status[current_id]['message'] = 'Starting'
+    make_video(working_status[current_id]['data'], current_id)
+
+@app.route('/status', methods=['POST'])
+def get_status():
+    if not request.json:
+        return abort(400)
+    data = request.get_json()
+    print(data)
+    if not 'id' in data:
+        return make_error("Id not found")
+    current_id = data['id']
+    print(current_id)
+    print(working_status)
+    if not current_id in working_status:
+        return make_error("Unknown id: {:s}".format(current_id))
+    if working_status[current_id]['status'] == 'process':
+        return json.dumps({
+            'status': 'process',
+            'message': working_status[current_id]['message']
+        })
+    elif working_status[current_id]['status'] == 'error':
+        return json.dumps({
+            'status': 'error',
+            'error': working_status[current_id]['error']
+        })
+    elif working_status[current_id]['status'] == 'ready':
+        return json.dumps({
+            'status': 'ready',
+            'url': working_status[current_id]['url']
+        })
+    else:
+        print(working_status[current_id])
+
+@app.route('/make_queue', methods=['POST'])
+def make_queued():
+    if not request.json:
+        return abort(400)
+    data = request.get_json()
+    print(data)
+    working_id = random_string()
+    # return make_video(data)
+    working_status[working_id] = {
+        'data': data,
+        'status': 'NOT STARTED'
+    }
+    threading.Thread(target=proceed, args=(working_id,)).start()
+    return json.dumps({
+        'type': 'ok',
+        'id': working_id
+    })
 
 @socketio.on('make')
 def make_socket_io(data):
