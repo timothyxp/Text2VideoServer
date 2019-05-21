@@ -29,8 +29,7 @@ def load_from_link(link):
         parsed_article = bs.BeautifulSoup(article, 'lxml')
         paragraphs = parsed_article.find_all('p')
         article_text = ""
-        for p in paragraphs:  
-            print("paragraph")
+        for p in paragraphs:
             article_text += p.text
         # divs = parsed_article.find_all('div')
         # for div in divs:  
