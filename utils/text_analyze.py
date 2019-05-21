@@ -114,6 +114,7 @@ class TextAnalyze(TextAnalyzeBase):
             query = urllib.parse.urlencode(query)
 
             url = "https://www.youtube.com/results?" + query
+            print(url)
 
             response = urllib.request.urlopen(url)
             html = response.read()
