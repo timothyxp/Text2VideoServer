@@ -97,6 +97,8 @@ class VideoMaker(VideoMakerBase):
         return frame
 
     def __add_text_to_video__(self, file_name, intervals, duration, config, icon=None, overlay=None):
+        font = ImageFont.truetype('fonts/Roboto-Regular.ttf', config['textSize'])
+
         icon_overlay = None
         icon_width = 0
         icon_height = 0
@@ -160,7 +162,6 @@ class VideoMaker(VideoMakerBase):
                 if interval.begin <= cur_time and cur_time < interval.end:
                     image_pil = Image.fromarray(frame)
                     draw = ImageDraw.Draw(image_pil)
-                    font = ImageFont.truetype('fonts/Roboto-Regular.ttf', config['textSize'])
                     
                     splited = interval.text.split(' ')
                     cur = ''
