@@ -1,4 +1,4 @@
-from server.app import app, socketio
+from server.app import app, socketio, working_status
 
 from flask import request, abort
 
@@ -22,8 +22,6 @@ import time
 import threading
 
 from utils.image_download import load_image
-
-working_status = {}
 
 def make_error(error):
     return json.dumps({
