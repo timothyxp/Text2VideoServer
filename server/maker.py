@@ -25,7 +25,6 @@ from utils.image_download import load_image
 
 working_status = {}
 
-
 def make_error(error):
     return json.dumps({
         'type': 'error',
