@@ -6,6 +6,8 @@ from flask_socketio import SocketIO
 app = Flask("__app__", static_folder='tmp', static_url_path='')
 socketio = SocketIO(app)
 
+working_status = {}
+
 from server import main_handler
 from server import maker
 from server import search
