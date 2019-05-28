@@ -3,7 +3,8 @@ import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
 
-from config import DEFAULT_EMOTION, YOUTUBE_FILTER, MIN_TEXT_LENGTH
+from config import DEFAULT_EMOTION, YOUTUBE_FILTER
+from utils.conf import *
 import bs4 as bs
 import urllib.request
 import re
@@ -113,6 +114,7 @@ class TextAnalyze(TextAnalyzeBase):
             query = urllib.parse.urlencode(query)
 
             url = "https://www.youtube.com/results?" + query
+            print(url)
 
             response = urllib.request.urlopen(url)
             html = response.read()
