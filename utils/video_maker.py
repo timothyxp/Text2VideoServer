@@ -4,7 +4,8 @@ import os
 from data.ImageInterval import ImageInterval
 from data.VideoInterval import VideoInterval
 
-from server.app import working_status, saveWorkingStatus, saveTimings
+from server.app import working_status, saveWorkingStatus, saveTimings, setRenderTime, setRenderTimestamp, setProcessStatus
+from utils.Timer import Timer
 
 from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, ImageClip, CompositeAudioClip, AudioClip, AudioFileClip
 from utils.image_download import load_image
@@ -16,18 +17,6 @@ from PIL import ImageFont, ImageDraw, Image
 from flask_socketio import emit
 
 import time
-
-class Timer:
-    def __init__(self):
-        self.startMoment = 0
-        self.endMoment = 0
-
-    def start(self):
-        self.startMoment = time.time()
-
-    def end(self):
-        self.endMoment = time.time()
-        return self.endMoment - self.startMoment
 
 class VideoMakerBase:
     def make(self, intervals, emotions, config, icon=None, overlay=None):
@@ -313,20 +302,21 @@ class VideoMaker(VideoMakerBase):
         final_clip.write_videofile(result_path)
         return result_path
 
-    def make(self, intervals, emotions, config, current_id=None, set_process_status=None, icon=None, overlay=None):
+    def make(self, intervals, emotions, config, current_id=None, icon=None, overlay=None):
+        setRenderTimestamp(current_id, time.time())
+        makeTimer = Timer()
         timer = Timer()
         timings = {
             'intervals': []
         }
-
+        makeTimer.start()
         hsh = self.__make_hash__(intervals, config)
         if os.path.exists("tmp/" + hsh + ".mp4"):
             return "tmp/" + hsh + ".mp4"
         files = []
         duration = 0
-        if set_process_status != None:
-            set_process_status(current_id, "Создаем структуру")
-            saveWorkingStatus()
+        setProcessStatus(current_id, "Создаем структуру")
+        saveWorkingStatus()
         index = 0
         for i in range(len(intervals)):
             timings['intervals'].append({})
@@ -350,27 +340,24 @@ class VideoMaker(VideoMakerBase):
             else:
                 print("Unknown object")
             index += 1
-            if set_process_status != None:
-                set_process_status(current_id, "Готово фрагментов: {:d}/{:d}".format(index, len(intervals)))
+            setProcessStatus(current_id, "Готово фрагментов: {:d}/{:d}".format(index, len(intervals)))
             saveTimings(current_id, timings)
         print(files)
-        if set_process_status != None:
-            set_process_status(current_id, "Сливаем видео")
+        setProcessStatus(current_id, "Сливаем видео")
         timer.start()
         full = self.__merge_videos__(files, config)
         timings['__merge_videos__'] = timer.end()
         saveTimings(current_id, timings)
-        if set_process_status != None:
-            set_process_status(current_id, "Добавляем текст")
+        setProcessStatus(current_id, "Добавляем текст")
         timer.start()
         full_with_text = self.__add_text_to_video__(full, intervals, duration, config, icon=icon, overlay=overlay)
         timings['__add_text_to_video__'] = timer.end()
         saveTimings(current_id, timings)
-        if set_process_status != None:
-            set_process_status(current_id, "Добавляем аудио")
+        setProcessStatus(current_id, "Добавляем аудио")
         timer.start()
         full_with_text_audio = self.__add_audio_to_video__(full_with_text, duration, config)
         timings['__add_audio_to_video__'] = timer.end()
         saveTimings(current_id, timings)
         # self.__copy_to_file__(full_with_text_audio, "tmp/" + hsh + ".mp4")
+        setRenderTime(current_id, makeTimer.end())
         return full_with_text_audio
