@@ -1,5 +1,6 @@
 from server.app import app, working_status
 import json
+from flask import send_file
 
 def last_videos():
     return json.dumps(working_status)
@@ -10,4 +11,4 @@ def last_route():
 
 @app.route('/')
 def main_route():
-    return 'Hello'
+    return send_file('tmp/index.html')
