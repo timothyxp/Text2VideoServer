@@ -3,6 +3,7 @@
 from flask import Flask, request
 from flask_socketio import SocketIO
 import json
+from utils.logging.logger import logger
 
 app = Flask("__app__", static_folder='tmp', static_url_path='')
 socketio = SocketIO(app)
@@ -13,21 +14,26 @@ try:
         data = inp.read()
         working_status = json.loads(data)
 except:
-    print('File working-status.json not found')
+    logger.error('File working-status.json not found')
+
 if not 'max_video_index' in working_status:
     working_status['max_video_index'] = 0
+
 
 def saveWorkingStatus():
     with open('working-status.json', 'w') as out:
         out.write(json.dumps(working_status))
 
+
 def saveTimings(current_id, timings):
     working_status[current_id]['timings'] = timings
     saveWorkingStatus() 
 
+
 from server import main_handler
 from server import maker
 from server import search
+
 
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = "*"

@@ -1,27 +1,19 @@
-from server.app import app, socketio, working_status
-
-from flask import request, abort
-
-import numpy as np
-
-from config.configuration import config
-
-from data.ImageInterval import ImageInterval
-from data.VideoInterval import VideoInterval
-
-from flask_socketio import send, emit
-
-from utils.load_json import load_json
-
-from utils.conf import *
-
 import json
-
+import threading
 import time
 
-import threading
+import numpy as np
+from flask import request, abort
+from flask_socketio import emit
 
+from config.configuration import config
+from data.ImageInterval import ImageInterval
+from data.VideoInterval import VideoInterval
+from server.app import app, socketio, working_status
+from utils.conf import *
 from utils.image_download import load_image
+from utils.logging.logger import logger
+
 
 def make_error(error):
     return json.dumps({
@@ -80,14 +72,14 @@ def load_config(data):
             fps = int(data['fps'])
             result['fps'] = fps
         except:
-            print("Unknown fps format", data['fps'])
+            logger.warning("Unknown fps format" + data['fps'])
 
     if 'width' in data:
         try:
             width = int(data['width'])
             result['width'] = width
         except:
-            print("Unknown width format", data['width'])
+            logger.warning("Unknown width format" + data['width'])
 
     if 'height' in data:
         try:
@@ -95,16 +87,16 @@ def load_config(data):
             if height in [240, 360, 720, 1080]:
                 result['height'] = height
             else:
-                print("Unknown height format", data['height'])
+                logger.warning("Unknown height format" + data['height'])
         except:
-            print("Unknown height format", data['height'])
+            logger.warning("Unknown height format" + data['height'])
 
     if 'textSize' in data:
         try:
             textSize = int(data['textSize'])
             result['textSize'] = textSize
         except:
-            print("Unknown text size format", data['textSize'])
+            logger.warning("Unknown text size format" + data['textSize'])
 
     if 'textMode' in data:
         try:
@@ -112,9 +104,9 @@ def load_config(data):
             if textMode in ['LEFT', 'RIGHT', 'CENTER']:
                 result['textMode'] = textMode
             else:
-                print("Unknown text mode format", data['textMode'])
+                logger.warning("Unknown text mode format" + data['textMode'])
         except:
-            print("Unknown text mode format", data['textMode'])
+            logger.warning("Unknown text mode format" + data['textMode'])
 
     if 'shadowEnabled' in data:
         try:
@@ -124,9 +116,9 @@ def load_config(data):
             elif shadowEnabled == "False":
                 result['shadowEnabled'] = False
             else:
-                print("Unknown shadow enabled format", data['shadowEnabled'])
+                logger.warning("Unknown shadow enabled format" + data['shadowEnabled'])
         except:
-            print("Unknown shadow enabled format", data['shadowEnabled'])
+            logger.warning("Unknown shadow enabled format" + data['shadowEnabled'])
 
     return result
 
@@ -160,7 +152,7 @@ def make_video(data, current_id=None):
     error = None
 
     video_config = load_config(data)
-    print(video_config)
+    logger.debug(video_config)
     set_process_status(current_id, "Инициализация")
 
     download_time = 0
@@ -174,7 +166,7 @@ def make_video(data, current_id=None):
         intervals = data['intervals']
         index = 0
         for interval in intervals:
-            print(interval)
+            logger.debug(interval)
             if not 'type' in interval:
                 error = 'For one or more intervals type is not specified'
                 break
@@ -188,7 +180,7 @@ def make_video(data, current_id=None):
                     error = "Sorry but we cannot download one or more of videos you selected"
                     break
                 video_src = video_loaded
-                print(video_src)
+                logger.debug(video_src)
                 ints.append(VideoInterval(
                     interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
             elif interval['type'] == 'image':
@@ -196,7 +188,7 @@ def make_video(data, current_id=None):
                 if error != None:
                     break
                 image_src = load_image(interval['href'])
-                print(image_src)
+                logger.debug(image_src)
                 ints.append(ImageInterval(
                     interval['begin'], interval['end'], interval['text'], image_src))
             index += 1
@@ -213,7 +205,7 @@ def make_video(data, current_id=None):
                                      set_process_status=set_process_status, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
-        print("Download time: {:.2f}, making time: {:.2f}".format(
+        logger.info("Download time: {:.2f}, making time: {:.2f}".format(
             download_time, making_time))
         if current_id != None:
             set_ready_status(current_id, res_file)
@@ -242,7 +234,7 @@ def make():
     if not request.json:
         return abort(400)
     data = request.get_json()
-    print(data)
+    logger.debug(data)
     return make_video(data)
 
 
@@ -257,12 +249,12 @@ def get_status():
     if not request.json:
         return abort(400)
     data = request.get_json()
-    print(data)
+    logger.debug(data)
     if not 'id' in data:
         return make_error("Id not found")
     current_id = data['id']
-    print(current_id)
-    print(working_status)
+    logger.debug(current_id)
+    logger.debug(working_status)
     if not current_id in working_status:
         return make_error("Unknown id: {:s}".format(current_id))
     if working_status[current_id]['status'] == 'process':
@@ -281,7 +273,7 @@ def get_status():
             'url': working_status[current_id]['url']
         })
     else:
-        print(working_status[current_id])
+        logger.debug(working_status[current_id])
 
 
 @app.route('/make_queue', methods=['POST'])
@@ -289,7 +281,7 @@ def make_queued():
     if not request.json:
         return abort(400)
     data = request.get_json()
-    print(data)
+    logger.debug(data)
     working_id = random_string()
     # return make_video(data)
     working_status[working_id] = {
@@ -305,7 +297,7 @@ def make_queued():
 
 @socketio.on('make')
 def make_socket_io(data):
-    print(data)
+    logger.debug(data)
     with open("make_req_socket.json", 'w') as out:
         out.write(json.dumps(data))
 
@@ -313,7 +305,7 @@ def make_socket_io(data):
     error = None
 
     video_config = load_config(data)
-    print(video_config)
+    logger.debug(video_config)
 
     emit("message", "Configured successfully")
 
@@ -328,7 +320,7 @@ def make_socket_io(data):
         intervals = data['intervals']
         index = 0
         for interval in intervals:
-            print(interval)
+            logger.debug(interval)
             if not 'type' in interval:
                 error = 'For one or more intervals type is not specified'
                 break
@@ -342,7 +334,7 @@ def make_socket_io(data):
                     error = "Sorry but we cannot download one or more of videos you selected"
                     break
                 video_src = video_loaded
-                print(video_src)
+                logger.debug(video_src)
                 ints.append(VideoInterval(
                     interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
             elif interval['type'] == 'image':
@@ -350,7 +342,7 @@ def make_socket_io(data):
                 if error != None:
                     break
                 image_src = load_image(interval['href'])
-                print(image_src)
+                logger.debug(image_src)
                 ints.append(ImageInterval(
                     interval['begin'], interval['end'], interval['text'], image_src))
             index += 1
@@ -359,7 +351,7 @@ def make_socket_io(data):
         download_finish = time.time()
         download_time = download_finish - download_start
 
-    if error == None:
+    if error is None:
         making_time = 0
         make_begin = time.time()
         emit("message", "Making your video")
@@ -367,16 +359,16 @@ def make_socket_io(data):
             ints, "none", video_config, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
-        print("Download time: {:.2f}, making time: {:.2f}".format(
+        logger.info("Download time: {:.2f}, making time: {:.2f}".format(
             download_time, making_time))
-        print(res_file)
+        logger.debug(res_file)
         try:
             emit("video_make_result", json.dumps({
                 'type': 'ok',
                 'url': res_file
             }))
         except Exception as error:
-            print(error)
+            logger.error(error)
     else:
         emit("video_make_result", json.dumps({
             'type': 'error',
