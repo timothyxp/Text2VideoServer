@@ -1,20 +1,14 @@
-from server.app import app
+import json
+import urllib.request
 
+import bs4 as bs
 from flask import request, abort
 
 from config.configuration import Config
-
-from config import *
+from server.app import app
 from utils.conf import *
-
 from utils.load_json import load_json
-
-from os import path
-
-import bs4 as bs  
-import urllib.request  
 from utils.logging.logger import logger
-import json
 
 
 def make_error(error):

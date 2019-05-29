@@ -5,13 +5,14 @@ import os
 from os import path
 
 from config import DOWNLOAD_PATH
+from utils.logging.logger import logger
 
 import json
 
 
 class VideoDownloadBase(ABC):
     @abstractmethod
-    def download(self, href):
+    def download(self, href, config):
         pass
 
 
@@ -24,12 +25,12 @@ class VideoDownload(VideoDownloadBase):
                 self.errored = json.loads(data)
 
     def __save_cache__(self):
-        print('Saving cache')
+        logger.debug('Saving cache')
         with open('error_cache.txt', 'w') as out:
             out.write(json.dumps(self.errored))
 
     def download(self, href, config):
-        print(self.errored)
+        logger.warning(self.errored)
         
         token = href.split('=')[1]
 
@@ -37,14 +38,14 @@ class VideoDownload(VideoDownloadBase):
         file_path = DOWNLOAD_PATH + "/" + file_name + ".mp4"
 
         if path.exists(file_path):
-            print('Already exists')
+            logger.debug('Already exists')
             return file_path
 
         if href in self.errored:
-            print('Was errored before', href)
+            logger.warning('Was errored before', href)
             return None
         else:
-            print('Wasn\'t errored')
+            logger.debug('Wasn\'t errored')
 
         try:
             yt = pytube.YouTube(href)
@@ -55,23 +56,24 @@ class VideoDownload(VideoDownloadBase):
             quality = 0
             for video in video_filter.all():
                 resolution = video.resolution
-                print(video.url)
-                if resolution != None:
+                logger.debug(f"get {video.url}")
+
+                if resolution is not None:
                     resolution = int(video.resolution.replace('p', ''))
                     if resolution <= config['height'] and resolution >= quality:
                         quality = resolution
             video_filter = video_filter.filter(resolution=str(quality) + "p")
             video = video_filter.first()
 
-            print("Quality: " + str(quality) + "p")
+            logger.info("Quality: " + str(quality) + "p")
 
-            if video == None:
+            if video is None:
                 self.errored[href] = True
                 self.__save_cache__()
                 return None
             subtype = video.subtype
 
-            print('Downloading')
+            print(f"Downloading {DOWNLOAD_PATH}")
 
             video.download(
                 DOWNLOAD_PATH,
@@ -80,7 +82,7 @@ class VideoDownload(VideoDownloadBase):
 
             return file_path
         except Exception as error:
-            print('Error handled', error)
+            logger.error('Error handled', error)
             self.errored[href] = True
             self.__save_cache__()
             return None
