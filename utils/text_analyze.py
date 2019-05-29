@@ -182,6 +182,3 @@ class TextAnalyze(TextAnalyzeBase):
             'data': videos_href,
             'length': len(text) * .2
         }, None
-
-
-TextAnalyze().__make_search__('kek')
