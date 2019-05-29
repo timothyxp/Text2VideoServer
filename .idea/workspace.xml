@@ -3,11 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="f676a527-7c88-40df-a87d-2592a71251cb" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/search.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/search.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/image_download.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/image_download.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/search_cache.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/text_analyze.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/text_analyze.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/video_download.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/video_download.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -62,8 +59,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/image_download.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="457">
-              <caret line="76" column="17" selection-start-line="76" selection-start-column="17" selection-end-line="76" selection-end-column="17" />
+            <state relative-caret-position="438">
+              <caret line="72" lean-forward="true" selection-start-line="72" selection-end-line="72" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -80,7 +77,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/logging/log.conf">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="292">
@@ -89,11 +86,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/utils/text_analyze.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="437">
-              <caret line="125" column="21" lean-forward="true" selection-start-line="125" selection-start-column="21" selection-end-line="125" selection-end-column="21" />
+            <state relative-caret-position="481">
+              <caret line="184" lean-forward="true" selection-start-line="184" selection-end-line="184" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -155,9 +152,9 @@
         <option value="$PROJECT_DIR$/server/search.py" />
         <option value="$PROJECT_DIR$/server/app.py" />
         <option value="$PROJECT_DIR$/utils/video_download.py" />
-        <option value="$PROJECT_DIR$/utils/text_analyze.py" />
         <option value="$PROJECT_DIR$/utils/image_download.py" />
         <option value="$PROJECT_DIR$/utils/logging/log.conf" />
+        <option value="$PROJECT_DIR$/utils/text_analyze.py" />
       </list>
     </option>
   </component>
@@ -486,16 +483,6 @@
     <entry file="file://$PROJECT_DIR$/utils/search_cache.json">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/text_analyze.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="437">
-          <caret line="125" column="21" lean-forward="true" selection-start-line="125" selection-start-column="21" selection-end-line="125" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils/downloaded/httpsim0-tub-ruyandexneti?id587aace0628e3a65638503eab61dd70fn13.jpg">
       <provider selected="true" editor-type-id="images" />
     </entry>
@@ -523,20 +510,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/utils/logging/log.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="292">
+          <caret line="19" lean-forward="true" selection-start-line="19" selection-end-line="19" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/utils/image_download.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="457">
-          <caret line="76" column="17" selection-start-line="76" selection-start-column="17" selection-end-line="76" selection-end-column="17" />
+        <state relative-caret-position="438">
+          <caret line="72" lean-forward="true" selection-start-line="72" selection-end-line="72" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/logging/log.conf">
+    <entry file="file://$PROJECT_DIR$/utils/text_analyze.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="19" lean-forward="true" selection-start-line="19" selection-end-line="19" />
+        <state relative-caret-position="481">
+          <caret line="184" lean-forward="true" selection-start-line="184" selection-end-line="184" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
