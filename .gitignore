@@ -6,3 +6,6 @@ tmp/
 server/__pycache__/
 config/__pycache__/
 utils/__pycache__/
+
+# Python logging
+debug.log
