@@ -1,4 +1,4 @@
-from server.app import app, socketio, working_status
+from server.app import app, socketio, working_status, setProcessStatus, setErrorStatus, setReadyStatus
 
 from flask import request, abort
 
@@ -130,28 +130,6 @@ def load_config(data):
 
     return result
 
-
-def set_ready_status(current_id, res_file):
-    if current_id == None:
-        return
-    working_status[current_id]['status'] = 'ready'
-    working_status[current_id]['url'] = res_file
-
-
-def set_process_status(current_id, message):
-    if current_id == None:
-        return
-    working_status[current_id]['status'] = 'process'
-    working_status[current_id]['message'] = message
-
-
-def set_error_status(current_id, error):
-    if current_id == None:
-        return
-    working_status[current_id]['status'] = 'error'
-    working_status[current_id]['error'] = error
-
-
 def make_video(data, current_id=None):
     with open("make_req.json", 'w') as out:
         out.write(json.dumps(data))
@@ -161,7 +139,7 @@ def make_video(data, current_id=None):
 
     video_config = load_config(data)
     print(video_config)
-    set_process_status(current_id, "Инициализация")
+    setProcessStatus(current_id, "Инициализация")
 
     download_time = 0
     download_start = 0
@@ -200,30 +178,29 @@ def make_video(data, current_id=None):
                 ints.append(ImageInterval(
                     interval['begin'], interval['end'], interval['text'], image_src))
             index += 1
-            set_process_status(
+            setProcessStatus(
                 current_id, "Загружено: {:d}/{:d}".format(index, len(intervals)))
-        set_process_status(current_id, "Все видео успешно загружены")
+        setProcessStatus(current_id, "Все видео успешно загружены")
         download_finish = time.time()
         download_time = download_finish - download_start
 
     if error == None:
         making_time = 0
         make_begin = time.time()
-        res_file = config.maker.make(ints, "none", video_config, current_id=current_id,
-                                     set_process_status=set_process_status, icon=None, overlay=None)
+        res_file = config.maker.make(ints, "none", video_config, current_id=current_id, icon=None, overlay=None)
         make_end = time.time()
         making_time = make_end - make_begin
         print("Download time: {:.2f}, making time: {:.2f}".format(
             download_time, making_time))
         if current_id != None:
-            set_ready_status(current_id, res_file)
+            setReadyStatus(current_id, res_file)
         return json.dumps({
             'type': 'ok',
             'url': res_file
         })
     else:
         if current_id != None:
-            set_error_status(current_id, str(error))
+            setErrorStatus(current_id, str(error))
         return json.dumps({
             'type': 'error',
             'error': str(error)
