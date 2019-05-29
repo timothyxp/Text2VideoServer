@@ -13,14 +13,16 @@ from os import path
 
 import bs4 as bs  
 import urllib.request  
-
+from utils.logging.logger import logger
 import json
+
 
 def make_error(error):
     return json.dumps({
         'type': 'error',
         'error': str(error)
     })
+
 
 def load_from_link(link):
     try:
@@ -35,11 +37,12 @@ def load_from_link(link):
         # for div in divs:  
         #     print("div")
         #     article_text += div.text
-        print(article_text)
+        logger.debug(article_text)
         return article_text, None
     except Exception as error:
-        print(error)
+        logger.error(error)
         return None, "We cannot download article for your link"
+
 
 @app.route('/search', methods=["POST"])
 def search():
@@ -50,7 +53,7 @@ def search():
         return load_json("beta/search_top.json")
 
     req = request.get_json()
-    print(req)
+    logger.debug(req)
 
     config = Config()
 
@@ -71,7 +74,7 @@ def search():
     if reqType == 'link' and not 'link' in req:
         error = "Link field is empty"
 
-    print("Request type", reqType)
+    logger.info("Request type", reqType)
 
     if error != None:
         return make_error(error)
@@ -91,17 +94,17 @@ def search():
 
     bad_videos = {}
 
-    print(data)
+    logger.debug(data)
     for sentence in data['data']:
-        print(sentence)
+        logger.debug(sentence)
         buffer = []
         for elem in data['data'][sentence]:
-            print(elem, end = ' ')
+            logger.debug(elem)
             if elem['type'] == 'video':
                 if not elem['href'] in bad_videos:
                     buffer.append(elem)
                 else:
-                    print("Found bad video:", elem)
+                    logger.warning("Found bad video:", elem)
             else:
                 buffer.append(elem)
         print()
