@@ -8,9 +8,8 @@ import urllib.request
 from bs4 import BeautifulSoup
 from utils.logging.logger import logger
 from config import DOWNLOAD_PATH
-import os
-
-import os
+import os.path
+from requests_html import HTMLSession
 
 
 def random_string():
@@ -48,7 +47,7 @@ def load_image(img_url):
     return file_name
 
 
-def find_images(text):
+def find_images(text, limit=1):
     logger.debug(f"start find images for {text}")
     try:
         query = {
@@ -66,12 +65,49 @@ def find_images(text):
         soup = BeautifulSoup(html, "html.parser")
 
         images = []
-        for image in soup.find_all(attrs={"class": "serp-item__thumb justifier__thumb"}):
-            images.append(image["src"])
+        for image in soup.find_all(attrs={"class": "serp-item__link"}):
+            images.append(image["href"])
+
+        logger.debug(f"get {len(images)} images before limiting")
+
+        limit = min(limit, len(images))
+        images = images[:limit]
 
         logger.info(f"get {len(images)} images")
 
-        return images
+        hrefs = []
+
+        for href in images:
+            url = "https://yandex.ru" + href
+
+            logger.debug(f"get image from {url}")
+
+            session = HTMLSession()
+
+            response = session.get(url)
+            response.html.render()
+
+            logger.debug(response.html)
+
+            images = response.html.find('.preview2__arrow-image')
+
+            logger.debug(images)
+
+            src = None
+            for image in images:
+                logger.debug(image.attrs)
+                try:
+                    test_src = image.attrs["src"]
+                    logger.debug(f"find src {src}")
+                    src = test_src
+                    break
+                except Exception as error:
+                    logger.error(error)
+
+            if src is not None:
+                hrefs.append(src)
+
+        return hrefs
     except Exception as error:
         logger.error(error)
         return []
