@@ -1,30 +1,26 @@
-from abc import abstractmethod, ABC
+import heapq
+import json
+import os
+import re
 import urllib.parse
 import urllib.request
+import urllib.request
+from abc import abstractmethod, ABC
+
+import nltk
 from bs4 import BeautifulSoup
+from nltk.corpus import stopwords
+from summa import summarizer
 
 from config import DEFAULT_EMOTION, YOUTUBE_FILTER
 from utils.conf import *
-import bs4 as bs
-import urllib.request
-import re
-import nltk
-from nltk.corpus import stopwords
-import heapq
 
-from summa import summarizer
-
-import json
-
-import os
 
 class TextAnalyzeBase(ABC):
-    def __init__(self):
-        pass
-
     @abstractmethod
     def analyze(self, text):
        pass
+
 
 class TextAnalyze(TextAnalyzeBase):
     def __init__(self):
@@ -109,7 +105,7 @@ class TextAnalyze(TextAnalyzeBase):
         try:
             query = {
                 'search_query': text,
-                'sp':YOUTUBE_FILTER
+                'sp': YOUTUBE_FILTER
             }
             query = urllib.parse.urlencode(query)
 
@@ -186,3 +182,6 @@ class TextAnalyze(TextAnalyzeBase):
             'data': videos_href,
             'length': len(text) * .2
         }, None
+
+
+TextAnalyze().__make_search__('kek')
