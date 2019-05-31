@@ -24,8 +24,6 @@ def hsh(s):
 
 
 def load_image(img_url):
-    #if img_url.find("downloaded") != -1:
-    #    return img_url
     file_name = os.path.join(DOWNLOAD_PATH, hsh(img_url) + '.jpg')
     logger.debug(f"file for image {file_name}")
 

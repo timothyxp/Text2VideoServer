@@ -68,7 +68,7 @@ def search():
     if reqType == 'link' and not 'link' in req:
         error = "Link field is empty"
 
-    logger.info("Request type", reqType)
+    logger.info("Request type " + reqType)
 
     if error != None:
         return make_error(error)
@@ -98,7 +98,7 @@ def search():
                 if not elem['href'] in bad_videos:
                     buffer.append(elem)
                 else:
-                    logger.warning("Found bad video:", elem)
+                    logger.warning("Found bad video: " + elem)
             else:
                 buffer.append(elem)
         print()

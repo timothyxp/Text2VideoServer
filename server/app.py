@@ -3,12 +3,10 @@
 import json
 
 from flask import Flask
-from flask_socketio import SocketIO
 
 from utils.logging.logger import logger
 
 app = Flask("__app__", static_folder='tmp', static_url_path='')
-socketio = SocketIO(app)
 
 working_status = {}
 try:
