@@ -1,8 +1,10 @@
 # This Python file uses the following encoding: utf-8
 
-from flask import Flask, request
-from flask_socketio import SocketIO
 import json
+
+from flask import Flask
+from flask_socketio import SocketIO
+
 from utils.logging.logger import logger
 
 app = Flask("__app__", static_folder='tmp', static_url_path='')
@@ -53,12 +55,7 @@ def setRenderTime(current_id, renderTime):
 
 def saveTimings(current_id, timings):
     working_status[current_id]['timings'] = timings
-    saveWorkingStatus() 
-
-
-from server import main_handler
-from server import maker
-from server import search
+    saveWorkingStatus()
 
 
 def add_cors_headers(response):
