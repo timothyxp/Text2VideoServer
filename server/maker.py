@@ -73,14 +73,14 @@ def load_config(data):
             fps = int(data['fps'])
             result['fps'] = fps
         except:
-            logger.warning("Unknown fps format" + data['fps'])
+            logger.warning("Unknown fps format " + str(data['fps']))
 
     if 'width' in data:
         try:
             width = int(data['width'])
             result['width'] = width
         except:
-            logger.warning("Unknown width format" + data['width'])
+            logger.warning("Unknown width format " + str(data['width']))
 
     if 'height' in data:
         try:
@@ -88,9 +88,9 @@ def load_config(data):
             if height in [240, 360, 720, 1080]:
                 result['height'] = height
             else:
-                logger.warning("Unknown height format" + data['height'])
+                logger.warning("Unknown height format " + str(data['height']))
         except:
-            logger.warning("Unknown height format" + data['height'])
+            logger.warning("Unknown height format " + str(data['height']))
 
     if 'textSize' in data:
         try:
@@ -105,9 +105,9 @@ def load_config(data):
             if textMode in ['LEFT', 'RIGHT', 'CENTER']:
                 result['textMode'] = textMode
             else:
-                logger.warning("Unknown text mode format" + data['textMode'])
+                logger.warning("Unknown text mode format " + str(data['textMode']))
         except:
-            logger.warning("Unknown text mode format" + data['textMode'])
+            logger.warning("Unknown text mode format " + str(data['textMode']))
 
     if 'shadowEnabled' in data:
         try:
@@ -117,9 +117,9 @@ def load_config(data):
             elif shadowEnabled == "False":
                 result['shadowEnabled'] = False
             else:
-                logger.warning("Unknown shadow enabled format" + data['shadowEnabled'])
+                logger.warning("Unknown shadow enabled format " + str(data['shadowEnabled']))
         except:
-            logger.warning("Unknown shadow enabled format" + data['shadowEnabled'])
+            logger.warning("Unknown shadow enabled format " + str(data['shadowEnabled']))
 
     return result
 
