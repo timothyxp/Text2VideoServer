@@ -1,7 +1,7 @@
 import json
 import threading
 import time
-from server.app import app, socketio, working_status, setProcessStatus, setErrorStatus, setReadyStatus
+from server.app import app, working_status, setProcessStatus, setErrorStatus, setReadyStatus
 
 import numpy as np
 from flask import request, abort
@@ -272,83 +272,3 @@ def make_queued():
         'id': working_id
     })
 
-
-@socketio.on('make')
-def make_socket_io(data):
-    logger.debug(data)
-    with open("make_req_socket.json", 'w') as out:
-        out.write(json.dumps(data))
-
-    ints = []
-    error = None
-
-    video_config = load_config(data)
-    logger.debug(video_config)
-
-    emit("message", "Configured successfully")
-
-    download_time = 0
-    download_start = 0
-    download_finish = 0
-
-    if not 'intervals' in data:
-        error = "Unknown request format"
-    else:
-        download_start = time.time()
-        intervals = data['intervals']
-        index = 0
-        for interval in intervals:
-            logger.debug(interval)
-            if not 'type' in interval:
-                error = 'For one or more intervals type is not specified'
-                break
-            if interval['type'] == 'video':
-                error = checkVideoInterval(interval)
-                if error != None:
-                    break
-                video_loaded = config.downloader.download(
-                    interval['href'], video_config)
-                if video_loaded == None:
-                    error = "Sorry but we cannot download one or more of videos you selected"
-                    break
-                video_src = video_loaded
-                logger.debug(video_src)
-                ints.append(VideoInterval(
-                    interval['begin'], interval['end'], interval['text'], video_src, interval['video_begin'], interval['video_end']))
-            elif interval['type'] == 'image':
-                error = checkImageInterval(interval)
-                if error != None:
-                    break
-                image_src = load_image(interval['href'])
-                logger.debug(image_src)
-                ints.append(ImageInterval(
-                    interval['begin'], interval['end'], interval['text'], image_src))
-            index += 1
-            emit(
-                "message", "Downloaded: {:d}/{:d}".format(index, len(intervals)))
-        download_finish = time.time()
-        download_time = download_finish - download_start
-
-    if error is None:
-        making_time = 0
-        make_begin = time.time()
-        emit("message", "Making your video")
-        res_file = config.maker.make(
-            ints, "none", video_config, icon=None, overlay=None)
-        make_end = time.time()
-        making_time = make_end - make_begin
-        logger.info("Download time: {:.2f}, making time: {:.2f}".format(
-            download_time, making_time))
-        logger.debug(res_file)
-        try:
-            emit("video_make_result", json.dumps({
-                'type': 'ok',
-                'url': res_file
-            }))
-        except Exception as error:
-            logger.error(error)
-    else:
-        emit("video_make_result", json.dumps({
-            'type': 'error',
-            'error': str(error)
-        }))
