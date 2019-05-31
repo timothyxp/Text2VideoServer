@@ -51,9 +51,21 @@ def setRenderTime(current_id, renderTime):
     working_status[current_id]['renderTime'] = renderTime
     saveWorkingStatus()
 
+def setRenderConfig(current_id, config):
+    working_status[current_id]['config'] = config
+    saveWorkingStatus()
+
+def setRenderRequestTimestamp(current_id, timestamp):
+    working_status[current_id]['requestTimestamp'] = timestamp
+    saveWorkingStatus()
+
 def saveTimings(current_id, timings):
     working_status[current_id]['timings'] = timings
     saveWorkingStatus()
+
+def setVideoDuration(current_id, duration):
+    working_status[current_id]['duration'] = duration
+    saveWorkingStatus() 
 
 
 def add_cors_headers(response):

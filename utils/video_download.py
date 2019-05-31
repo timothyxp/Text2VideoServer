@@ -42,7 +42,7 @@ class VideoDownload(VideoDownloadBase):
             return file_path
 
         if href in self.errored:
-            logger.warning('Was errored before', href)
+            logger.warning('Was errored before ' + href)
             return None
         else:
             logger.debug('Wasn\'t errored')
@@ -71,9 +71,8 @@ class VideoDownload(VideoDownloadBase):
                 self.errored[href] = True
                 self.__save_cache__()
                 return None
-            subtype = video.subtype
 
-            print(f"Downloading {DOWNLOAD_PATH}")
+            logger.info(f"Downloading {file_path}")
 
             video.download(
                 DOWNLOAD_PATH,
@@ -82,7 +81,7 @@ class VideoDownload(VideoDownloadBase):
 
             return file_path
         except Exception as error:
-            logger.error('Error handled', error)
+            logger.error('Error handled ' + error)
             self.errored[href] = True
             self.__save_cache__()
             return None

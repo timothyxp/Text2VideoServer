@@ -4,7 +4,7 @@ import os
 from data.ImageInterval import ImageInterval
 from data.VideoInterval import VideoInterval
 
-from server.app import working_status, saveWorkingStatus, saveTimings, setRenderTime, setRenderTimestamp, setProcessStatus
+from server.app import working_status, saveWorkingStatus, saveTimings, setRenderTime, setRenderTimestamp, setProcessStatus, setVideoDuration
 from utils.Timer import Timer
 
 from moviepy.editor import VideoFileClip, concatenate_videoclips, ImageSequenceClip, ImageClip, CompositeAudioClip, AudioClip, AudioFileClip
@@ -159,7 +159,7 @@ class VideoMaker(VideoMakerBase):
             frame *= 255
             frame = np.array(frame, dtype='uint8')
 
-            height, width, colors = frame.shape
+            height, width, _ = frame.shape
 
             while events_index < len(intervals) and cur_time >= intervals[events_index].end:
                 events_index += 1
@@ -321,7 +321,6 @@ class VideoMaker(VideoMakerBase):
         for i in range(len(intervals)):
             timings['intervals'].append({})
             if type(intervals[i]) == ImageInterval:
-                print("Working on making image video")
                 timer.start()
                 img = load_image(intervals[i].src)
                 timings['intervals'][-1]['load_image'] = timer.end()
@@ -342,7 +341,7 @@ class VideoMaker(VideoMakerBase):
             index += 1
             setProcessStatus(current_id, "Готово фрагментов: {:d}/{:d}".format(index, len(intervals)))
             saveTimings(current_id, timings)
-        print(files)
+        setVideoDuration(current_id, duration)
         setProcessStatus(current_id, "Сливаем видео")
         timer.start()
         full = self.__merge_videos__(files, config)

@@ -1,7 +1,7 @@
 import json
 import threading
 import time
-from server.app import app, working_status, setProcessStatus, setErrorStatus, setReadyStatus
+from server.app import app, working_status, setProcessStatus, setErrorStatus, setReadyStatus, setRenderRequestTimestamp, setRenderConfig
 
 import numpy as np
 from flask import request, abort
@@ -13,6 +13,7 @@ from data.VideoInterval import VideoInterval
 from utils.conf import *
 from utils.image_download import load_image
 from utils.logging.logger import logger
+from utils.Timer import Timer
 
 
 def make_error(error):
@@ -123,25 +124,22 @@ def load_config(data):
     return result
 
 def make_video(data, current_id=None):
-    with open("make_req.json", 'w') as out:
-        out.write(json.dumps(data))
-
+    setRenderRequestTimestamp(current_id, time.time())
     ints = []
     error = None
 
     video_config = load_config(data)
+    setRenderConfig(current_id, video_config)
     
     logger.debug(video_config)
-    set_process_status(current_id, "Инициализация")
+    setProcessStatus(current_id, "Инициализация")
 
-    download_time = 0
-    download_start = 0
-    download_finish = 0
+    downloadTimer = Timer()
 
     if not 'intervals' in data:
         error = "Unknown request format"
     else:
-        download_start = time.time()
+        downloadTimer.start()
         intervals = data['intervals']
         index = 0
         for interval in intervals:
@@ -174,15 +172,14 @@ def make_video(data, current_id=None):
             setProcessStatus(
                 current_id, "Загружено: {:d}/{:d}".format(index, len(intervals)))
         setProcessStatus(current_id, "Все видео успешно загружены")
-        download_finish = time.time()
-        download_time = download_finish - download_start
+        download_time = downloadTimer.end()
 
     if error == None:
         making_time = 0
-        make_begin = time.time()
+        makeTimer = Timer()
+        makeTimer.start()
         res_file = config.maker.make(ints, "none", video_config, current_id=current_id, icon=None, overlay=None)
-        make_end = time.time()
-        making_time = make_end - make_begin
+        making_time = makeTimer.end()
         logger.info("Download time: {:.2f}, making time: {:.2f}".format(
             download_time, making_time))
         if current_id != None:

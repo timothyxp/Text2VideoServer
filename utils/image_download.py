@@ -24,11 +24,13 @@ def hsh(s):
 
 
 def load_image(img_url):
+    if os.path.exists(img_url):
+        return img_url
     file_name = os.path.join(DOWNLOAD_PATH, hsh(img_url) + '.jpg')
     logger.debug(f"file for image {file_name}")
 
     if os.path.exists(file_name):
-        logger.debug("find image")
+        logger.debug("Found image")
         return file_name
 
     response = requests.get(img_url)
