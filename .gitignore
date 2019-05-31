@@ -7,5 +7,6 @@ server/__pycache__/
 config/__pycache__/
 utils/__pycache__/
 
+*.pyc
 # Python logging
 debug.log
