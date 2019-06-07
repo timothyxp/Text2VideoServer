@@ -30,8 +30,6 @@ class VideoDownload(VideoDownloadBase):
             out.write(json.dumps(self.errored))
 
     def download(self, href, config):
-        logger.warning(self.errored)
-        
         token = href.split('=')[1]
 
         file_name = token + '-' + str(config['height'])
@@ -47,12 +45,15 @@ class VideoDownload(VideoDownloadBase):
         else:
             logger.debug('Wasn\'t errored')
 
+        logger.info('Searching for quality')
+
         try:
             yt = pytube.YouTube(href)
-
+            logger.debug("YT object created")
             video_filter = yt.streams\
                 .filter(subtype='mp4') \
                 .filter(progressive=False)
+            logger.debug("video_filter created")
             quality = 0
             for video in video_filter.all():
                 resolution = video.resolution

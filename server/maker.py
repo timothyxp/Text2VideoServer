@@ -5,7 +5,6 @@ from server.app import app, working_status, setProcessStatus, setErrorStatus, se
 
 import numpy as np
 from flask import request, abort
-from flask_socketio import emit
 
 from config.configuration import config
 from data.ImageInterval import ImageInterval
