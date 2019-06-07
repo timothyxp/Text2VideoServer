@@ -47,7 +47,7 @@ class VideoDownload(VideoDownloadBase):
 
         logger.info('Searching for quality')
 
-        try:
+        # try:
             yt = pytube.YouTube(href)
             logger.debug("YT object created")
             video_filter = yt.streams\
@@ -81,9 +81,8 @@ class VideoDownload(VideoDownloadBase):
             )
 
             return file_path
-        except Exception as error:
-            logger.error('Error handled ' + str(error))
-            print(str(error))
-            self.errored[href] = True
-            self.__save_cache__()
-            return None
+        # except Exception as error:
+        #     logger.error('Error handled ' + str(error))
+        #     self.errored[href] = True
+        #     self.__save_cache__()
+        #     return None
