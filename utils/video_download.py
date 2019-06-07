@@ -81,7 +81,7 @@ class VideoDownload(VideoDownloadBase):
 
             return file_path
         except Exception as error:
-            logger.error('Error handled ' + error)
+            logger.error('Error handled ' + str(error))
             self.errored[href] = True
             self.__save_cache__()
             return None
